@@ -1,8 +1,10 @@
-﻿using System;
+﻿using OpenTK;
+using System;
+using System.Collections.Generic;
 
 namespace BlocksWorld
 {
-    public class Block
+    public abstract class Block
     {
         internal static bool IsSimilar(Block block1, Block block2)
         {
@@ -12,6 +14,65 @@ namespace BlocksWorld
                 return true;
             // TODO: Extend behaviour
             return false;
+        }
+
+        public struct AdjacentBlocks
+        {
+            public bool Top;
+            public bool Bottom;
+            public bool NegativeX;
+            public bool PositiveX;
+            public bool NegativeZ;
+            public bool PositiveZ;
+        }
+
+        public abstract List<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
+    }
+
+    public sealed partial class BasicBlock : Block
+    {
+        public BasicBlock() { }
+
+        public BasicBlock(Vector3 color)
+        {
+            this.Color = color;
+        }
+
+        public Vector3 Color { get; set; } = Vector3.UnitY;
+
+        public override List<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
+        {
+            Vector3 color = this.Color;
+            List<WorldRenderer.Vertex> vertices = new List<WorldRenderer.Vertex>();
+            if (neighborhood.Top)
+                vertices.AddRange(CreateInstance(topSideTemplate, color));
+
+            if (neighborhood.Bottom)
+                vertices.AddRange(CreateInstance(bottomSideTemplate, color));
+
+            if (neighborhood.NegativeX)
+                vertices.AddRange(CreateInstance(negativeXSideTemplate, color));
+
+            if (neighborhood.PositiveX)
+                vertices.AddRange(CreateInstance(positiveXSideTemplate, color));
+
+            if (neighborhood.NegativeZ)
+                vertices.AddRange(CreateInstance(negativeZSideTemplate, color));
+
+            if (neighborhood.PositiveZ)
+                vertices.AddRange(CreateInstance(positiveZSideTemplate, color));
+
+            return vertices;
+        }
+
+        WorldRenderer.Vertex[] CreateInstance(WorldRenderer.Vertex[] template, Vector3 color)
+        {
+            WorldRenderer.Vertex[] instance = (WorldRenderer.Vertex[])template.Clone();
+            for (int i = 0; i < instance.Length; i++)
+            {
+                instance[i].color = color;
+            }
+            return instance;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace BlocksWorld
         private int vertexBuffer;
         private int vertexCount;
 
-        private struct Vertex
+        public struct Vertex
         {
             public static readonly int SizeInBytes =
                 Vector3.SizeInBytes + // position
@@ -73,17 +73,6 @@ namespace BlocksWorld
             this.UpdateVertexBuffer();
         }
 
-        Vertex[] CreateInstance(Vertex[] template, Vector3 origin, Vector3 color)
-        {
-            Vertex[] instance = (Vertex[])template.Clone();
-            for (int i = 0; i < instance.Length; i++)
-            {
-                instance[i].position += origin;
-                instance[i].color = color;
-            }
-            return instance;
-        }
-
         void UpdateVertexBuffer()
         {
             List<Vertex> vertices = new List<Vertex>();
@@ -106,23 +95,21 @@ namespace BlocksWorld
 
                         Vector3 origin = new Vector3(x, y, z);
 
-                        if (Block.IsSimilar(block, this.world[x, y + 1, z]) == false)
-                            vertices.AddRange(CreateInstance(topSideTemplate, origin, colors[y]));
+                        Block.AdjacentBlocks neighborhood = new Block.AdjacentBlocks();
+                        neighborhood.Bottom = Block.IsSimilar(block, this.world[x, y - 1, z]) == false;
+                        neighborhood.Top = Block.IsSimilar(block, this.world[x, y + 1, z]) == false;
+                        neighborhood.NegativeX = Block.IsSimilar(block, this.world[x - 1, y, z]) == false;
+                        neighborhood.PositiveX = Block.IsSimilar(block, this.world[x + 1, y, z]) == false;
+                        neighborhood.NegativeZ = Block.IsSimilar(block, this.world[x, y, z - 1]) == false;
+                        neighborhood.PositiveZ = Block.IsSimilar(block, this.world[x, y, z + 1]) == false;
 
-                        if (Block.IsSimilar(block, this.world[x, y - 1, z]) == false)
-                            vertices.AddRange(CreateInstance(bottomSideTemplate, origin, colors[y]));
-                        
-                        if (Block.IsSimilar(block, this.world[x - 1, y, z]) == false)
-                            vertices.AddRange(CreateInstance(negativeXSideTemplate, origin, colors[y]));
 
-                        if (Block.IsSimilar(block, this.world[x + 1, y, z]) == false)
-                            vertices.AddRange(CreateInstance(positiveXSideTemplate, origin, colors[y]));
-                        
-                        if (Block.IsSimilar(block, this.world[x, y, z +1]) == false)
-                            vertices.AddRange(CreateInstance(negativeZSideTemplate, origin, colors[y]));
-
-                        if (Block.IsSimilar(block, this.world[x, y, z + 1]) == false)
-                            vertices.AddRange(CreateInstance(positiveZSideTemplate, origin, colors[y]));
+                        Vertex[] blockVertices = block.CreateMesh(neighborhood).ToArray();
+                        for (int i = 0; i < blockVertices.Length; i++)
+                        {
+                            blockVertices[i].position += origin;
+                        }
+                        vertices.AddRange(blockVertices);
                     }
                 }
             }

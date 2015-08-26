@@ -69,7 +69,7 @@
     <Compile Include="Shader.cs" />
     <Compile Include="World.cs" />
     <Compile Include="WorldRenderer.cs" />
-    <Compile Include="WorldRenderer.Templates.cs" />
+    <Compile Include="Block.Templates.cs" />
     <Compile Include="WorldScene.cs" />
   </ItemGroup>
   <ItemGroup>
