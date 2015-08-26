@@ -26,7 +26,7 @@ namespace BlocksWorld
             public bool PositiveZ;
         }
 
-        public abstract List<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
+        public abstract IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
     }
 
     public sealed partial class BasicBlock : Block
@@ -40,7 +40,7 @@ namespace BlocksWorld
 
         public Vector3 Color { get; set; } = Vector3.UnitY;
 
-        public override List<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
+        public override IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
         {
             Vector3 color = this.Color;
             List<WorldRenderer.Vertex> vertices = new List<WorldRenderer.Vertex>();

@@ -5,7 +5,7 @@ using System;
 
 namespace BlocksWorld
 {
-    public class Game : GameWindow
+    public class Game : GameWindow, IGameInputDriver
     {
         private Scene scene;
 
@@ -31,7 +31,7 @@ namespace BlocksWorld
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            this.scene.UpdateFrame(e.Time);
+            this.scene.UpdateFrame(this, e.Time);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)

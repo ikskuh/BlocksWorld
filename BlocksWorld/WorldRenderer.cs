@@ -2,6 +2,7 @@
 using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlocksWorld
 {
@@ -102,8 +103,7 @@ namespace BlocksWorld
                         neighborhood.PositiveX = Block.IsSimilar(block, this.world[x + 1, y, z]) == false;
                         neighborhood.NegativeZ = Block.IsSimilar(block, this.world[x, y, z - 1]) == false;
                         neighborhood.PositiveZ = Block.IsSimilar(block, this.world[x, y, z + 1]) == false;
-
-
+                        
                         Vertex[] blockVertices = block.CreateMesh(neighborhood).ToArray();
                         for (int i = 0; i < blockVertices.Length; i++)
                         {

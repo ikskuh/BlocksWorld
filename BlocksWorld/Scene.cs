@@ -9,7 +9,7 @@ namespace BlocksWorld
 
         }
 
-        public virtual void UpdateFrame(double time)
+        public virtual void UpdateFrame(IGameInputDriver input, double time)
         {
 
         }
