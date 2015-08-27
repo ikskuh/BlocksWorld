@@ -20,13 +20,16 @@ namespace BlocksWorld
             public static readonly int SizeInBytes =
                 Vector3.SizeInBytes + // position
                 Vector3.SizeInBytes + // normal
-                Vector3.SizeInBytes;  // color
+                Vector3.SizeInBytes + // color
+                Vector3.SizeInBytes;  // uv
 
             public Vector3 position;
 
             public Vector3 normal;
 
             public Vector3 color;
+
+            public Vector3 uv;
         }
 
         public WorldRenderer(World world)
@@ -70,6 +73,15 @@ namespace BlocksWorld
                     false,
                     Vertex.SizeInBytes,
                     2 * Vector3.SizeInBytes);
+
+                GL.EnableVertexAttribArray(3);
+                GL.VertexAttribPointer(
+                    3,
+                    3,
+                    VertexAttribPointerType.Float,
+                    false,
+                    Vertex.SizeInBytes,
+                    3 * Vector3.SizeInBytes);
             }
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);

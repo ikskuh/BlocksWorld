@@ -1,6 +1,7 @@
 ﻿using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlocksWorld
 {
@@ -31,14 +32,20 @@ namespace BlocksWorld
 
     public sealed partial class BasicBlock : Block
     {
-        public BasicBlock() { }
+        int texture;
 
-        public BasicBlock(Vector3 color)
+        public BasicBlock(int texture)
+        {
+            this.texture = texture;
+        }
+
+        public BasicBlock(Vector3 color, int texture)
+             : this(texture)
         {
             this.Color = color;
         }
 
-        public Vector3 Color { get; set; } = Vector3.UnitY;
+        public Vector3 Color { get; set; } = Vector3.One;
 
         public override IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
         {
@@ -62,7 +69,7 @@ namespace BlocksWorld
             if (neighborhood.PositiveZ)
                 vertices.AddRange(CreateInstance(positiveZSideTemplate, color));
 
-            return vertices;
+            return vertices.Select(v => { v.uv.Z = this.texture; return v; });
         }
 
         WorldRenderer.Vertex[] CreateInstance(WorldRenderer.Vertex[] template, Vector3 color)

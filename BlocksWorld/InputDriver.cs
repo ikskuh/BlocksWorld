@@ -91,6 +91,8 @@ namespace BlocksWorld
 
             this.SetFalse(this.releasedMouse);
             this.SetFalse(this.releasedButtons);
+
+            this.MouseMovement = Vector2.Zero;
         }
 
         void SetFalse<T>(Dictionary<T, bool> dict)

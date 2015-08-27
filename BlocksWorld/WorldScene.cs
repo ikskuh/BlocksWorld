@@ -3,6 +3,7 @@ using Jitter.Collision.Shapes;
 using Jitter.Dynamics;
 using Jitter.LinearMath;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using System;
@@ -34,6 +35,7 @@ namespace BlocksWorld
         double totalTime = 0.0;
         private RigidBody player;
         private Focus focus;
+        private TextureArray textures;
 
         public WorldScene()
         {
@@ -52,18 +54,18 @@ namespace BlocksWorld
             {
                 for (int z = 0; z < this.world.SizeZ; z++)
                 {
-                    this.world[x, 0, z] = new BasicBlock(new Vector3(0.54f, 0.27f, 0.07f));
+                    this.world[x, 0, z] = new BasicBlock(2);
                 }
             }
 
-            this.world[1, 1, 1] = new BasicBlock(Vector3.UnitY);
+            this.world[1, 1, 1] = new BasicBlock(1);
 
             for (int x = 0; x < this.world.SizeX; x++)
             {
                 for (int y = 1; y < 4; y++)
                 {
                     if ((x != 16) || (y >= 3))
-                        this.world[x, y, 8] = new BasicBlock(0.8f * Vector3.One);
+                        this.world[x, y, 8] = new BasicBlock(3);
                 }
             }
             
@@ -92,6 +94,8 @@ namespace BlocksWorld
             this.objectShader = Shader.CompileFromResource(
                 "BlocksWorld.Shaders.Object.vs",
                 "BlocksWorld.Shaders.Object.fs");
+            
+            this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
 
             this.debug.Load();
             this.renderer.Load();
@@ -118,8 +122,8 @@ namespace BlocksWorld
                 var cam = this.camera as FirstPersonCamera;
                 if (cam != null)
                 {
-                    cam.Pan -= 0.5f * input.Mouse.XDelta;
-                    cam.Tilt -= 0.5f * input.Mouse.YDelta;
+                    cam.Pan -= 0.5f * input.MouseMovement.X;
+                    cam.Tilt -= 0.5f * input.MouseMovement.Y;
 
                     cam.Pan %= 360.0f;
                     cam.Tilt = MathHelper.Clamp(cam.Tilt, -80, 80);
@@ -181,7 +185,7 @@ namespace BlocksWorld
                 int y = (int)block.Y;
                 int z = (int)block.Z;
 
-                this.world[x, y, z] = new BasicBlock(new Vector3(1, 0, 1));
+                this.world[x, y, z] = new BasicBlock(0);
             }
             if ((this.focus != null) && input.GetMouseDown(MouseButton.Right))
             {
@@ -195,6 +199,13 @@ namespace BlocksWorld
             }
 
             this.world.Step((float)time, false);
+
+
+            if(this.player.Position.Y < -10)
+            {
+                this.player.Position = new JVector(16, 4, 16);
+                this.player.LinearVelocity = JVector.Zero;
+            }
         }
 
         private Focus TraceFromScreen(FirstPersonCamera firstPersonCamera)
@@ -236,6 +247,9 @@ namespace BlocksWorld
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
+            GL.ClearColor(Color4.LightSkyBlue);
+            GL.ClearDepth(1.0f);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Matrix4 worldViewProjection =
                 Matrix4.Identity *
@@ -251,8 +265,19 @@ namespace BlocksWorld
                     GL.UniformMatrix4(loc, false, ref worldViewProjection);
                 }
 
+                loc = GL.GetUniformLocation(this.objectShader, "uTextures");
+                if (loc >= 0)
+                {
+                    GL.Uniform1(loc, 0);
+                }
+
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
+
                 this.renderer.Render(this.camera, time);
-                GL.UseProgram(0);
+
+                GL.BindTexture(TextureTarget.Texture2DArray, 0);
+                GL.UseProgram(0); 
             }
 
             // this.debug.DrawLine(new JVector(10, 4, 10), new JVector(20, 4, 20));
