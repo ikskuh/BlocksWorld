@@ -33,7 +33,7 @@ namespace BlocksWorld
         int objectShader;
 
         double totalTime = 0.0;
-        private RigidBody player;
+        private Player player;
         private Focus focus;
         private TextureArray textures;
 
@@ -70,17 +70,9 @@ namespace BlocksWorld
             }
             
             {
-                var shape = new CapsuleShape(0.9f, 0.4f);
-
-                this.player = new RigidBody(shape);
+                this.player = new Player();
                 this.player.Position = new JVector(16, 4, 16);
-                this.player.Material = new Material()
-                {
-                    StaticFriction = 0.0f,
-                    KineticFriction = 0.3f,
-                    Restitution = 0.1f
-                };
-                this.player.AllowDeactivation = false;
+                
 
                 this.world.AddBody(this.player);
                 this.world.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
@@ -142,10 +134,7 @@ namespace BlocksWorld
                     if (input.GetButton(Key.D)) move += right;
                     if (input.GetButton(Key.A)) move -= right;
 
-                    var vel = this.player.LinearVelocity;
-                    vel.X = 150.0f * move.X * (float)time;
-                    vel.Z = 150.0f * move.Z * (float)time;
-                    this.player.LinearVelocity = vel;
+                    this.player.WalkSpeed = 10.0f * move.Jitter();
                 }
             }
 
@@ -185,7 +174,7 @@ namespace BlocksWorld
                 int y = (int)block.Y;
                 int z = (int)block.Z;
 
-                this.world[x, y, z] = new BasicBlock(0);
+                this.world[x, y, z] = new BasicBlock(4);
             }
             if ((this.focus != null) && input.GetMouseDown(MouseButton.Right))
             {
@@ -199,8 +188,7 @@ namespace BlocksWorld
             }
 
             this.world.Step((float)time, false);
-
-
+            
             if(this.player.Position.Y < -10)
             {
                 this.player.Position = new JVector(16, 4, 16);
@@ -279,8 +267,6 @@ namespace BlocksWorld
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
                 GL.UseProgram(0); 
             }
-
-            // this.debug.DrawLine(new JVector(10, 4, 10), new JVector(20, 4, 20));
 
             foreach(RigidBody body in this.world.RigidBodies)
             {
