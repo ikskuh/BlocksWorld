@@ -27,13 +27,7 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            this.Network.Send(NetworkPhrase.RemoveBlock, (s) =>
-            {
-                s.Write((int)x);
-                s.Write((int)y);
-                s.Write((int)z);
-            });
-            // this.world[x, y, z] = null;
+            this.Network.RemoveBlock(x, y, z);
         }
 
         public override void SecondaryUse(FirstPersonCamera cam)
@@ -47,16 +41,7 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            var b = new BasicBlock(4);
-
-            this.Network.Send(NetworkPhrase.SetBlock, (s) =>
-            {
-                s.Write(x);
-                s.Write(y);
-                s.Write(z);
-                s.Write(b.GetType().AssemblyQualifiedName);
-                b.Serialize(s);
-            });
+            this.Network.SetBlock(x, y, z, new BasicBlock(4));
         }
 
         private Focus TraceFromScreen(FirstPersonCamera firstPersonCamera)

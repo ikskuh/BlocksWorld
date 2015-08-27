@@ -27,45 +27,22 @@ namespace BlocksWorld
         private TextureArray textures;
         
         private Network network;
+        private BasicReceiver receiver;
 
         public WorldScene()
         {
             this.world = new World();
-
-
+            
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
             this.network = new Network(new TcpClient("localhost", 4523));
+            this.receiver = new BasicReceiver(this.network, this.world);
 
             this.network[NetworkPhrase.LoadWorld] = this.LoadWorldFromNetwork;
             this.network[NetworkPhrase.SpawnPlayer] = this.SpawnPlayer;
-            this.network[NetworkPhrase.RemoveBlock] = this.RemoveBlock;
-            this.network[NetworkPhrase.SetBlock] = this.SetBlock;
         }
-
-        private void SetBlock(BinaryReader reader)
-        {
-            int x = reader.ReadInt32();
-            int y = reader.ReadInt32();
-            int z = reader.ReadInt32();
-            string typeName = reader.ReadString();
-            Type type = Type.GetType(typeName);
-            if (type == null)
-                throw new InvalidDataException();
-            Block block = Activator.CreateInstance(type) as Block;
-            block.Deserialize(reader);
-            this.world[x, y, z] = block;
-        }
-
-        private void RemoveBlock(BinaryReader reader)
-        {
-            int x = reader.ReadInt32();
-            int y = reader.ReadInt32();
-            int z = reader.ReadInt32();
-            this.world[x, y, z] = null;
-        }
-
+        
         private void SpawnPlayer(BinaryReader reader)
         {
             float x = reader.ReadSingle();

@@ -12,7 +12,7 @@ namespace BlocksWorld
 
     public delegate void PhraseSender(BinaryWriter writer);
 
-    public sealed class Network
+    public sealed partial class Network
     {
         private readonly TcpClient client;
         private readonly Dictionary<NetworkPhrase, PhraseHandler> dispatcher = new Dictionary<NetworkPhrase, PhraseHandler>();
