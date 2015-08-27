@@ -5,9 +5,10 @@ using System;
 
 namespace BlocksWorld
 {
-    public class Game : GameWindow, IGameInputDriver
+    public class Game : GameWindow
     {
         private Scene scene;
+        private InputDriver input;
 
         public Game() : 
             base(
@@ -24,6 +25,8 @@ namespace BlocksWorld
 
         protected override void OnLoad(EventArgs e)
         {
+            this.input = new InputDriver(this);
+
             GL.DebugMessageCallback(this.DebugProc, IntPtr.Zero);
 
             this.scene.Load();
@@ -31,7 +34,9 @@ namespace BlocksWorld
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            this.scene.UpdateFrame(this, e.Time);
+            this.scene.UpdateFrame(this.input, e.Time);
+
+            this.input.Reset();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)

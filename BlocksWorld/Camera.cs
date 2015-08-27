@@ -41,8 +41,22 @@ namespace BlocksWorld
 
         public override Matrix4 CreateViewMatrix()
         {
-            var eye = this.Body.Position.TK() + this.EyeHeight * Vector3.UnitY;
+            var eye = GetEye();
+            Vector3 rot = this.GetForward();
 
+            return Matrix4.LookAt(
+                eye,
+                eye + rot,
+                Vector3.UnitY);
+        }
+
+        public Vector3 GetEye()
+        {
+            return this.Body.Position.TK() + this.EyeHeight * Vector3.UnitY;
+        }
+
+        public Vector3 GetForward()
+        {
             Vector3 rot = Vector3.Zero;
             float pan = MathHelper.DegreesToRadians(this.Pan);
             float tilt = MathHelper.DegreesToRadians(this.Tilt);
@@ -50,11 +64,7 @@ namespace BlocksWorld
             rot.X = (float)(Math.Cos(tilt) * Math.Sin(pan));
             rot.Y = (float)(Math.Sin(tilt));
             rot.Z = (float)(Math.Cos(tilt) * Math.Cos(pan));
-
-            return Matrix4.LookAt(
-                eye,
-                eye + rot,
-                Vector3.UnitY);
+            return rot;
         }
     }
 

@@ -11,15 +11,29 @@ namespace BlocksWorld
 {
     public class WorldScene : Scene
     {
-        Jitter.World pworld;
+        class Focus
+        {
+            public JVector Position
+            {
+                get; set;
+            }
+
+            public JVector Normal
+            {
+                get; set;
+            }
+        }
+        
         World world;
         Camera camera;
         WorldRenderer renderer;
+        DebugRenderer debug;
 
         int objectShader;
 
         double totalTime = 0.0;
         private RigidBody player;
+        private Focus focus;
 
         public WorldScene()
         {
@@ -31,6 +45,7 @@ namespace BlocksWorld
 
             this.world = new World(32, 16, 32);
 
+            this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
             for (int x = 0; x < this.world.SizeX; x++)
@@ -51,29 +66,7 @@ namespace BlocksWorld
                         this.world[x, y, 8] = new BasicBlock(0.8f * Vector3.One);
                 }
             }
-
-
-
-            this.pworld = new Jitter.World(new Jitter.Collision.CollisionSystemPersistentSAP());
-
-            for (int x = 0; x < this.world.SizeX; x++)
-            {
-                for (int y = 0; y < this.world.SizeY; y++)
-                {
-                    for (int z = 0; z < this.world.SizeZ; z++)
-                    {
-                        var block = this.world[x, y, z];
-                        if (block == null)
-                            continue;
-
-                        RigidBody rb = new RigidBody(new BoxShape(1.0f, 1.0f, 1.0f));
-                        rb.Position = new JVector(x, y, z);
-                        rb.IsStatic = true;
-                        this.pworld.AddBody(rb);
-                    }
-                }
-            }
-
+            
             {
                 var shape = new CapsuleShape(0.9f, 0.4f);
 
@@ -85,9 +78,10 @@ namespace BlocksWorld
                     KineticFriction = 0.3f,
                     Restitution = 0.1f
                 };
+                this.player.AllowDeactivation = false;
 
-                this.pworld.AddBody(this.player);
-                this.pworld.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
+                this.world.AddBody(this.player);
+                this.world.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
             }
 
             this.camera = new FirstPersonCamera(this.player);
@@ -99,6 +93,7 @@ namespace BlocksWorld
                 "BlocksWorld.Shaders.Object.vs",
                 "BlocksWorld.Shaders.Object.fs");
 
+            this.debug.Load();
             this.renderer.Load();
         }
 
@@ -138,13 +133,10 @@ namespace BlocksWorld
                     Vector3 right = Vector3.Cross(forward, Vector3.UnitY);
 
                     Vector3 move = Vector3.Zero;
-                    if (input.Keyboard[Key.W]) move += forward;
-                    if (input.Keyboard[Key.S]) move -= forward;
-                    if (input.Keyboard[Key.D]) move += right;
-                    if (input.Keyboard[Key.A]) move -= right;
-
-                    this.player.IsActive = true;
-                    // this.player.AddForce((5000.0f * move * (float)time).Jitter());
+                    if (input.GetButton(Key.W)) move += forward;
+                    if (input.GetButton(Key.S)) move -= forward;
+                    if (input.GetButton(Key.D)) move += right;
+                    if (input.GetButton(Key.A)) move -= right;
 
                     var vel = this.player.LinearVelocity;
                     vel.X = 150.0f * move.X * (float)time;
@@ -153,7 +145,9 @@ namespace BlocksWorld
                 }
             }
 
-            if (input.Keyboard[Key.Space])
+            this.focus = this.TraceFromScreen(this.camera as FirstPersonCamera);
+
+            if (input.GetButtonDown(Key.Space))
             {
                 RaycastCallback callback = (b, n, f) =>
                 {
@@ -163,7 +157,7 @@ namespace BlocksWorld
                 JVector normal;
                 float friction;
 
-                if (this.pworld.CollisionSystem.Raycast(
+                if (this.world.CollisionSystem.Raycast(
                     this.player.Position,
                     new JVector(0, -1, 0),
                     callback,
@@ -179,11 +173,66 @@ namespace BlocksWorld
                 }
             }
 
-            this.pworld.Step((float)time, false);
+            if((this.focus != null) && input.GetMouseDown(MouseButton.Left))
+            {
+                JVector block = this.focus.Position + 0.5f * this.focus.Normal + 0.5f * JVector.One;
+
+                int x = (int)block.X;
+                int y = (int)block.Y;
+                int z = (int)block.Z;
+
+                this.world[x, y, z] = new BasicBlock(new Vector3(1, 0, 1));
+            }
+            if ((this.focus != null) && input.GetMouseDown(MouseButton.Right))
+            {
+                JVector block = this.focus.Position - 0.5f * this.focus.Normal + 0.5f * JVector.One;
+
+                int x = (int)block.X;
+                int y = (int)block.Y;
+                int z = (int)block.Z;
+
+                this.world[x, y, z] = null;
+            }
+
+            this.world.Step((float)time, false);
+        }
+
+        private Focus TraceFromScreen(FirstPersonCamera firstPersonCamera)
+        {
+            if (firstPersonCamera == null)
+                return null;
+
+            RaycastCallback callback = (b, n, f) =>
+            {
+                return b.IsStatic;
+            };
+            RigidBody body;
+            JVector normal;
+            float friction;
+
+            var from = firstPersonCamera.GetEye().Jitter();
+            var dir = firstPersonCamera.GetForward().Jitter();
+
+            if (this.world.CollisionSystem.Raycast(
+                from,
+                dir,
+                callback,
+                out body,
+                out normal,
+                out friction))
+            {
+                return new Focus()
+                {
+                    Position = from + friction * dir,
+                    Normal = normal
+                };
+            }
+            return null;
         }
 
         public override void RenderFrame(double time)
         {
+            this.debug.Reset();
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
@@ -192,17 +241,34 @@ namespace BlocksWorld
                 Matrix4.Identity *
                 this.camera.CreateViewMatrix() *
                 this.camera.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-
-            GL.UseProgram(this.objectShader);
-            int loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
-            if (loc >= 0)
+            
+            // Draw world
             {
-                GL.UniformMatrix4(loc, false, ref worldViewProjection);
+                GL.UseProgram(this.objectShader);
+                int loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
+                if (loc >= 0)
+                {
+                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
+                }
+
+                this.renderer.Render(this.camera, time);
+                GL.UseProgram(0);
             }
 
-            this.renderer.Render(this.camera, time);
+            // this.debug.DrawLine(new JVector(10, 4, 10), new JVector(20, 4, 20));
 
-            GL.UseProgram(0);
+            foreach(RigidBody body in this.world.RigidBodies)
+            {
+                body.DebugDraw(this.debug);
+            }
+
+            if (this.focus != null)
+            {
+                this.debug.DrawPoint(this.focus.Position);
+                this.debug.DrawLine(this.focus.Position, this.focus.Position + 0.25f * this.focus.Normal);
+            }
+            
+            this.debug.Render(this.camera, time);
         }
     }
 }

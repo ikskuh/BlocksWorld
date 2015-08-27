@@ -60,15 +60,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
+    <Compile Include="BlockEventArgs.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="DebugRenderer.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="IGameInputDriver.cs" />
+    <Compile Include="InputDriver.cs" />
     <Compile Include="MeshBlock.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IRenderer.cs" />
     <Compile Include="Scene.cs" />
     <Compile Include="Shader.cs" />
+    <Compile Include="TextureArray.cs" />
     <Compile Include="World.cs" />
     <Compile Include="WorldRenderer.cs" />
     <Compile Include="Block.Templates.cs" />
@@ -79,6 +83,9 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="Shaders\Object.fs" />
     <EmbeddedResource Include="Shaders\Object.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\Debug.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

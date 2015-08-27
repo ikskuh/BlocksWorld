@@ -2,6 +2,7 @@
 using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace BlocksWorld
@@ -12,6 +13,7 @@ namespace BlocksWorld
         private int vao;
         private int vertexBuffer;
         private int vertexCount;
+        private bool invalid = true;
 
         public struct Vertex
         {
@@ -30,6 +32,7 @@ namespace BlocksWorld
         public WorldRenderer(World world)
         {
             this.world = world;
+            this.world.BlockChanged += (s, e) => this.invalid = true;
         }
 
         internal void Load()
@@ -76,6 +79,9 @@ namespace BlocksWorld
 
         void UpdateVertexBuffer()
         {
+            if (this.invalid == false)
+                return;
+            var watch = Stopwatch.StartNew();
             List<Vertex> vertices = new List<Vertex>();
             Vector3[] colors = new[]
             {
@@ -121,10 +127,19 @@ namespace BlocksWorld
                 GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(Vertex.SizeInBytes * data.Length), data, BufferUsageHint.StaticDraw);
             }
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+            watch.Stop();
+            Console.WriteLine("Regenereted world in {0}", watch.Elapsed);
+
+            this.invalid = false;
         }
 
         public void Render(Camera camera, double time)
         {
+            if(this.invalid)
+            {
+                this.UpdateVertexBuffer();
+            }
             if (this.vertexCount > 0)
             {
                 GL.BindVertexArray(this.vao);
