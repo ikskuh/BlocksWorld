@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace BlocksWorld
 {
-    public static class NetworkPhrase
+    public enum NetworkPhrase
     {
-        public static readonly string LOADWORLD = "load-world";
-        public static readonly string SPAWNPLAYER = "spawn-player";
+        None,
+        LoadWorld,
+        SpawnPlayer,
     }
 }

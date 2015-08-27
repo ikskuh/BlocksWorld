@@ -19,7 +19,6 @@ namespace BlocksWorld
         World world;
         WorldRenderer renderer;
         DebugRenderer debug;
-        private Dictionary<string, Action> dispatcher = new Dictionary<string, Action>();
 
         int objectShader;
 
@@ -28,9 +27,7 @@ namespace BlocksWorld
         private TextureArray textures;
 
         private bool connected = false;
-        private TcpClient network;
-        private BinaryWriter writer;
-        private BinaryReader reader;
+        private Network network;
 
         public WorldScene()
         {
@@ -40,27 +37,23 @@ namespace BlocksWorld
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
-            this.network = new TcpClient("localhost", 4523);
-            var stream = this.network.GetStream();
-            this.reader = new BinaryReader(stream, Encoding.UTF8);
-            this.writer = new BinaryWriter(stream, Encoding.UTF8);
+            this.network = new Network(new TcpClient("localhost", 4523));
 
-
-            this.dispatcher.Add(NetworkPhrase.LOADWORLD, this.LoadWorldFromNetwork);
-            this.dispatcher.Add(NetworkPhrase.SPAWNPLAYER, this.SpawnPlayer);
+            this.network[NetworkPhrase.LoadWorld] = this.LoadWorldFromNetwork;
+            this.network[NetworkPhrase.SpawnPlayer] = this.SpawnPlayer;
         }
 
-        private void SpawnPlayer()
+        private void SpawnPlayer(BinaryReader reader)
         {
-            float x = this.reader.ReadSingle();
-            float y = this.reader.ReadSingle();
-            float z = this.reader.ReadSingle();
+            float x = reader.ReadSingle();
+            float y = reader.ReadSingle();
+            float z = reader.ReadSingle();
             this.CreatePlayer(new JVector(x, y, z));
         }
 
-        private void LoadWorldFromNetwork()
+        private void LoadWorldFromNetwork(BinaryReader reader)
         {
-            this.world.Load(this.reader.BaseStream, true);
+            this.world.Load(reader.BaseStream, true);
         }
 
         void CreatePlayer(JVector spawn)
@@ -89,19 +82,7 @@ namespace BlocksWorld
         {
             this.totalTime += time;
 
-            if (this.network.Available > 0)
-            {
-                string command = this.reader.ReadString();
-                if (this.dispatcher.ContainsKey(command))
-                {
-                    this.dispatcher[command]();
-                }
-                else
-                {
-                    Console.WriteLine("Command '{0}' not recognized, going down...");
-                    throw new InvalidDataException();
-                }
-            }
+            this.network.Dispatch();
 
             if (this.player != null)
                 this.player.UpdateFrame(input, time);
