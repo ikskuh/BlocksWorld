@@ -1,54 +1,13 @@
 ﻿using OpenTK;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BlocksWorld
 {
-    public abstract class Block
-    {
-        internal static bool IsSimilar(Block block1, Block block2)
-        {
-            if ((block1 == null) && (block2 == null))
-                return true;
-            if ((block1 != null) && (block2 != null))
-                return true;
-            // TODO: Extend behaviour
-            return false;
-        }
-
-        public struct AdjacentBlocks
-        {
-            public bool Top;
-            public bool Bottom;
-            public bool NegativeX;
-            public bool PositiveX;
-            public bool NegativeZ;
-            public bool PositiveZ;
-        }
-
-        public event EventHandler Changed;
-
-        protected void OnChanged()
-        {
-            if (this.Changed != null)
-                this.Changed(this, EventArgs.Empty);
-        }
-
-        public abstract IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
-
-        public virtual void Serialize(BinaryWriter bw)
-        {
-
-        }
-
-        public virtual void Deserialize(BinaryReader br)
-        {
-
-        }
-    }
-
     public sealed partial class BasicBlock : Block
     {
         int texture;
@@ -72,10 +31,10 @@ namespace BlocksWorld
 
         public Vector3 Color { get; set; } = Vector3.One;
 
-        public override IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
+        public override IEnumerable<BlockVertex> CreateMesh(AdjacentBlocks neighborhood)
         {
             Vector3 color = this.Color;
-            List<WorldRenderer.Vertex> vertices = new List<WorldRenderer.Vertex>();
+            List<BlockVertex> vertices = new List<BlockVertex>();
             if (neighborhood.Top)
                 vertices.AddRange(CreateInstance(topSideTemplate, color));
 
@@ -97,9 +56,9 @@ namespace BlocksWorld
             return vertices.Select(v => { v.uv.Z = this.texture; return v; });
         }
 
-        WorldRenderer.Vertex[] CreateInstance(WorldRenderer.Vertex[] template, Vector3 color)
+        BlockVertex[] CreateInstance(BlockVertex[] template, Vector3 color)
         {
-            WorldRenderer.Vertex[] instance = (WorldRenderer.Vertex[])template.Clone();
+            BlockVertex[] instance = (BlockVertex[])template.Clone();
             for (int i = 0; i < instance.Length; i++)
             {
                 instance[i].color = color;

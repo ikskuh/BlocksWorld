@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlocksWorld", "BlocksWorld\BlocksWorld.csproj", "{42BF44F4-1C83-4D24-B45B-025E0F2D2E73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlocksWorld.Server", "BlocksWorld.Server\BlocksWorld.Server.csproj", "{17AA9A90-D1F0-41F1-8D6A-794AD9902BAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlocksWorld.Common", "BlocksWorld.Common\BlocksWorld.Common.csproj", "{E8CCE420-36D3-4F82-9BFC-270636CC7CDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{42BF44F4-1C83-4D24-B45B-025E0F2D2E73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42BF44F4-1C83-4D24-B45B-025E0F2D2E73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42BF44F4-1C83-4D24-B45B-025E0F2D2E73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17AA9A90-D1F0-41F1-8D6A-794AD9902BAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17AA9A90-D1F0-41F1-8D6A-794AD9902BAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17AA9A90-D1F0-41F1-8D6A-794AD9902BAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17AA9A90-D1F0-41F1-8D6A-794AD9902BAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8CCE420-36D3-4F82-9BFC-270636CC7CDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8CCE420-36D3-4F82-9BFC-270636CC7CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8CCE420-36D3-4F82-9BFC-270636CC7CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8CCE420-36D3-4F82-9BFC-270636CC7CDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

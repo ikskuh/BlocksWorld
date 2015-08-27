@@ -15,23 +15,6 @@ namespace BlocksWorld
         private int vertexCount;
         private bool invalid = true;
 
-        public struct Vertex
-        {
-            public static readonly int SizeInBytes =
-                Vector3.SizeInBytes + // position
-                Vector3.SizeInBytes + // normal
-                Vector3.SizeInBytes + // color
-                Vector3.SizeInBytes;  // uv
-
-            public Vector3 position;
-
-            public Vector3 normal;
-
-            public Vector3 color;
-
-            public Vector3 uv;
-        }
-
         public WorldRenderer(World world)
         {
             this.world = world;
@@ -53,7 +36,7 @@ namespace BlocksWorld
                     3,
                     VertexAttribPointerType.Float,
                     false,
-                    Vertex.SizeInBytes,
+                    BlockVertex.SizeInBytes,
                     0);
 
                 GL.EnableVertexAttribArray(1);
@@ -62,7 +45,7 @@ namespace BlocksWorld
                     3,
                     VertexAttribPointerType.Float,
                     false,
-                    Vertex.SizeInBytes,
+                    BlockVertex.SizeInBytes,
                     Vector3.SizeInBytes);
 
                 GL.EnableVertexAttribArray(2);
@@ -71,7 +54,7 @@ namespace BlocksWorld
                     3,
                     VertexAttribPointerType.Float,
                     false,
-                    Vertex.SizeInBytes,
+                    BlockVertex.SizeInBytes,
                     2 * Vector3.SizeInBytes);
 
                 GL.EnableVertexAttribArray(3);
@@ -80,7 +63,7 @@ namespace BlocksWorld
                     3,
                     VertexAttribPointerType.Float,
                     false,
-                    Vertex.SizeInBytes,
+                    BlockVertex.SizeInBytes,
                     3 * Vector3.SizeInBytes);
             }
             GL.BindVertexArray(0);
@@ -94,7 +77,7 @@ namespace BlocksWorld
             if (this.invalid == false)
                 return;
             var watch = Stopwatch.StartNew();
-            List<Vertex> vertices = new List<Vertex>();
+            List<BlockVertex> vertices = new List<BlockVertex>();
             Vector3[] colors = new[]
             {
                 Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ,
@@ -121,8 +104,8 @@ namespace BlocksWorld
                         neighborhood.PositiveX = Block.IsSimilar(block, this.world[x + 1, y, z]) == false;
                         neighborhood.NegativeZ = Block.IsSimilar(block, this.world[x, y, z - 1]) == false;
                         neighborhood.PositiveZ = Block.IsSimilar(block, this.world[x, y, z + 1]) == false;
-                        
-                        Vertex[] blockVertices = block.CreateMesh(neighborhood).ToArray();
+
+                        BlockVertex[] blockVertices = block.CreateMesh(neighborhood).ToArray();
                         for (int i = 0; i < blockVertices.Length; i++)
                         {
                             blockVertices[i].position += origin;
@@ -134,9 +117,9 @@ namespace BlocksWorld
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
             {
-                Vertex[] data = vertices.ToArray();
+                BlockVertex[] data = vertices.ToArray();
                 this.vertexCount = data.Length;
-                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(Vertex.SizeInBytes * data.Length), data, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(BlockVertex.SizeInBytes * data.Length), data, BufferUsageHint.StaticDraw);
             }
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 

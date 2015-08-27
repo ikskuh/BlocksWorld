@@ -7,7 +7,10 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
+using System.Text;
 
 namespace BlocksWorld
 {
@@ -16,6 +19,7 @@ namespace BlocksWorld
         World world;
         WorldRenderer renderer;
         DebugRenderer debug;
+        private Dictionary<string, Action> dispatcher = new Dictionary<string, Action>();
 
         int objectShader;
 
@@ -23,47 +27,50 @@ namespace BlocksWorld
         private Player player;
         private TextureArray textures;
 
+        private bool connected = false;
+        private TcpClient network;
+        private BinaryWriter writer;
+        private BinaryReader reader;
+
         public WorldScene()
         {
             this.world = new World();
-            if (File.Exists("world.dat"))
-            {
-                this.world.Load("world.dat");
-            }
-            else
-            {
-                for (int x = 0; x <= 32; x++)
-                {
-                    for (int z = 0; z < 32; z++)
-                    {
-                        this.world[x, 0, z] = new BasicBlock(2);
-                    }
-                }
 
-                this.world[1, 1, 1] = new BasicBlock(1);
-
-                for (int x = 0; x < 32; x++)
-                {
-                    for (int y = 1; y < 4; y++)
-                    {
-                        if ((x != 16) || (y >= 3))
-                            this.world[x, y, 8] = new BasicBlock(3);
-                    }
-                }
-            }
 
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
-            // Create player
-            {
-                this.player = new Player(this.world);
-                this.player.Tool = new BlockPlaceTool(this.world);
-                this.player.Position = new JVector(16, 4, 16);
-                
-                this.world.AddBody(this.player);
-                this.world.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
-            }
+            this.network = new TcpClient("localhost", 4523);
+            var stream = this.network.GetStream();
+            this.reader = new BinaryReader(stream, Encoding.UTF8);
+            this.writer = new BinaryWriter(stream, Encoding.UTF8);
+
+
+            this.dispatcher.Add(NetworkPhrase.LOADWORLD, this.LoadWorldFromNetwork);
+            this.dispatcher.Add(NetworkPhrase.SPAWNPLAYER, this.SpawnPlayer);
+        }
+
+        private void SpawnPlayer()
+        {
+            float x = this.reader.ReadSingle();
+            float y = this.reader.ReadSingle();
+            float z = this.reader.ReadSingle();
+            this.CreatePlayer(new JVector(x, y, z));
+        }
+
+        private void LoadWorldFromNetwork()
+        {
+            this.world.Load(this.reader.BaseStream, true);
+        }
+
+        void CreatePlayer(JVector spawn)
+        {
+            this.player = new Player(this.world);
+            this.player.Tool = new BlockPlaceTool(this.world);
+            this.player.Position = spawn;
+
+            this.world.AddBody(this.player);
+            this.world.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
         }
 
         public override void Load()
@@ -71,7 +78,7 @@ namespace BlocksWorld
             this.objectShader = Shader.CompileFromResource(
                 "BlocksWorld.Shaders.Object.vs",
                 "BlocksWorld.Shaders.Object.fs");
-            
+
             this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
 
             this.debug.Load();
@@ -82,8 +89,23 @@ namespace BlocksWorld
         {
             this.totalTime += time;
 
-            this.player.UpdateFrame(input, time);
-            
+            if (this.network.Available > 0)
+            {
+                string command = this.reader.ReadString();
+                if (this.dispatcher.ContainsKey(command))
+                {
+                    this.dispatcher[command]();
+                }
+                else
+                {
+                    Console.WriteLine("Command '{0}' not recognized, going down...");
+                    throw new InvalidDataException();
+                }
+            }
+
+            if (this.player != null)
+                this.player.UpdateFrame(input, time);
+
             this.world.Step((float)time, false);
 
             if (input.GetButtonDown(Key.F5))
@@ -100,11 +122,17 @@ namespace BlocksWorld
             GL.ClearDepth(1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            var cam = this.player?.Camera ?? new StaticCamera()
+            {
+                Eye = new Vector3(0, 8, 0),
+                Target = new Vector3(16, 2, 16)
+            };
+
             Matrix4 worldViewProjection =
                 Matrix4.Identity *
-                this.player.Camera.CreateViewMatrix() *
-                this.player.Camera.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-            
+                cam.CreateViewMatrix() *
+                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+
             // Draw world
             {
                 GL.UseProgram(this.objectShader);
@@ -123,13 +151,13 @@ namespace BlocksWorld
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
 
-                this.renderer.Render(this.player.Camera, time);
+                this.renderer.Render(cam, time);
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
-                GL.UseProgram(0); 
+                GL.UseProgram(0);
             }
 
-            foreach(RigidBody body in this.world.RigidBodies)
+            foreach (RigidBody body in this.world.RigidBodies)
             {
                 body.DebugDraw(this.debug);
             }
@@ -141,8 +169,8 @@ namespace BlocksWorld
                 this.debug.DrawLine(this.focus.Position, this.focus.Position + 0.25f * this.focus.Normal);
             }
             */
-            
-            this.debug.Render(this.player.Camera, time);
+
+            this.debug.Render(cam, time);
         }
     }
 }

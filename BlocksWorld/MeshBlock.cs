@@ -7,11 +7,11 @@ namespace BlocksWorld
 {
     internal class MeshBlock : Block
     {
-        private WorldRenderer.Vertex[] mesh;
+        private BlockVertex[] mesh;
 
         public MeshBlock(Vector3[] mesh, Vector3 color)
         {
-            this.mesh = mesh.Select(p => new WorldRenderer.Vertex()
+            this.mesh = mesh.Select(p => new BlockVertex()
             {
                 position = p,
                 color = color
@@ -35,7 +35,7 @@ namespace BlocksWorld
             }
         }
 
-        public override IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood)
+        public override IEnumerable<BlockVertex> CreateMesh(AdjacentBlocks neighborhood)
         {
             return this.mesh;
         }

@@ -9,7 +9,6 @@ namespace BlocksWorld
 {
     partial class World
     {
-
         public void Load(string fileName)
         {
             using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))
@@ -26,7 +25,12 @@ namespace BlocksWorld
             }
         }
 
-        private void Load(FileStream fs)
+        public void Load(Stream fs)
+        {
+            this.Load(fs, false);
+        }
+
+        public void Load(Stream fs, bool leaveOpen)
         {
             // Reset whole world
             foreach (var block in blocks.ToArray())
@@ -35,7 +39,7 @@ namespace BlocksWorld
             }
 
             Action<bool> assert = (b) => { if (!b) throw new InvalidDataException(); };
-            using (var br = new BinaryReader(fs, Encoding.UTF8))
+            using (var br = new BinaryReader(fs, Encoding.UTF8, leaveOpen))
             {
                 assert(br.ReadString() == "BLOCKWORLD");
                 assert(br.ReadByte() == 1);
@@ -47,6 +51,8 @@ namespace BlocksWorld
                 {
                     string typeName = br.ReadString();
                     types[i] = Type.GetType(typeName);
+                    if (types[i] == null)
+                        throw new TypeLoadException("Could not find type " + typeName);
                 }
 
                 long blockCount = br.ReadInt64();
@@ -66,10 +72,15 @@ namespace BlocksWorld
             }
         }
 
-        private void Save(Stream fs)
+        public void Save(Stream fs)
+        {
+            this.Save(fs, false);
+        }
+
+        public void Save(Stream fs, bool leaveOpen)
         {
             var blocks = this.blocks.Where(x => (x.Value != null) && (x.Value.Block != null)).ToArray();
-            using (var bw = new BinaryWriter(fs, Encoding.UTF8))
+            using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen))
             {
                 bw.Write("BLOCKWORLD");
                 bw.Write((byte)1);
@@ -96,6 +107,7 @@ namespace BlocksWorld
 
                     block.Serialize(bw);
                 }
+                bw.Flush();
             }
         }
     }
