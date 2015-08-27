@@ -28,6 +28,14 @@ namespace BlocksWorld
             public bool PositiveZ;
         }
 
+        public event EventHandler Changed;
+
+        protected void OnChanged()
+        {
+            if (this.Changed != null)
+                this.Changed(this, EventArgs.Empty);
+        }
+
         public abstract IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
 
         public virtual void Serialize(BinaryWriter bw)

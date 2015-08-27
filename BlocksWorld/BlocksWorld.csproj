@@ -81,6 +81,7 @@
     <Compile Include="TextureArray.cs" />
     <Compile Include="Tool.cs" />
     <Compile Include="World.cs" />
+    <Compile Include="World.IO.cs" />
     <Compile Include="WorldRenderer.cs" />
     <Compile Include="Block.Templates.cs" />
     <Compile Include="WorldScene.cs" />
