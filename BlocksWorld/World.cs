@@ -7,16 +7,21 @@ namespace BlocksWorld
 {
     public class World : Jitter.World
     {
-        private Block[,,] blocks;
-        private RigidBody[,,] physics;
+        private SparseArray3D<Atom> chunks;
 
+        class Atom
+        {
+            public Block Block { get; set; }
+
+            public RigidBody Body { get; set; }
+        }
+        
         public event EventHandler<BlockEventArgs> BlockChanged;
 
-        public World(int sizeX, int sizeY, int sizeZ) : 
+        public World(int sizeX, int sizeY, int sizeZ) :
             base(new Jitter.Collision.CollisionSystemPersistentSAP())
         {
-            this.blocks = new Block[sizeX, sizeY, sizeZ];
-            this.physics = new RigidBody[sizeX, sizeY, sizeZ];
+            this.chunks = new SparseArray3D<Atom>();
         }
 
         protected void OnBlockChanged(Block block, int x, int y, int z)
@@ -24,46 +29,47 @@ namespace BlocksWorld
             if (this.BlockChanged != null)
                 this.BlockChanged(this, new BlockEventArgs(block, x, y, z));
         }
-        
+
         public Block this[int x, int y, int z]
         {
             get
             {
-                if ((x < 0) || (y < 0) || (z < 0))
-                    return null;
-                if ((x >= this.SizeX) || (y >= this.SizeY) || (z >= this.SizeZ))
-                    return null;
-                return this.blocks[x, y, z];
+                return this.chunks[x, y, z]?.Block;
             }
             set
             {
-                var prev = this.blocks[x, y, z];
+                this.chunks[x, y, z] = this.chunks[x, y, z] ?? new Atom();
+                var prev = this.chunks[x, y, z].Block;
                 if (prev == value) // No change at all
                     return;
 
-                if(this.physics[x,y,z] != null)
+                if (this.chunks[x, y, z].Body != null)
                 {
-                    this.RemoveBody(this.physics[x, y, z]);
-                    this.physics[x, y, z] = null;
+                    this.RemoveBody(this.chunks[x, y, z].Body);
+                    this.chunks[x, y, z].Body = null;
                 }
 
-                this.blocks[x, y, z] = value;
+                this.chunks[x, y, z].Block = value;
 
-                if(value != null)
+                if (value != null)
                 {
                     RigidBody rb = new RigidBody(new BoxShape(1.0f, 1.0f, 1.0f));
                     rb.Position = new JVector(x, y, z);
                     rb.IsStatic = true;
                     this.AddBody(rb);
-                    this.physics[x, y, z] = rb;
+                    this.chunks[x, y, z].Body = rb;
                 }
-                
+
                 this.OnBlockChanged(value, x, y, z);
             }
         }
 
-        public int SizeX { get { return this.blocks.GetLength(0); } }
-        public int SizeY { get { return this.blocks.GetLength(1); } }
-        public int SizeZ { get { return this.blocks.GetLength(2); } }
+        public int LowerX { get { return this.chunks.GetLowerX(); } }
+        public int LowerY { get { return this.chunks.GetLowerY(); } }
+        public int LowerZ { get { return this.chunks.GetLowerZ(); } }
+
+        public int UpperX { get { return this.chunks.GetUpperX(); } }
+        public int UpperY { get { return this.chunks.GetUpperY(); } }
+        public int UpperZ { get { return this.chunks.GetUpperZ(); } }
     }
 }

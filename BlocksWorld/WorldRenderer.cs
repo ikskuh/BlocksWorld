@@ -102,11 +102,11 @@ namespace BlocksWorld
                 new Vector3(1, 1, 1)
             };
 
-            for (int x = 0; x < this.world.SizeX; x++)
+            for (int x = this.world.LowerX; x <= this.world.UpperX; x++)
             {
-                for (int z = 0; z < this.world.SizeZ; z++)
+                for (int z = this.world.LowerZ; z <= this.world.UpperZ; z++)
                 {
-                    for (int y = 0; y < this.world.SizeY; y++)
+                    for (int y = this.world.LowerY; y <= this.world.UpperY; y++)
                     {
                         Block block = this.world[x, y, z];
                         if (block == null)

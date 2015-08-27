@@ -2,7 +2,7 @@
 
 namespace BlocksWorld
 {
-    public abstract class Scene
+    public abstract class Scene : IUpdateable
     {
         public virtual void RenderFrame(double time)
         {

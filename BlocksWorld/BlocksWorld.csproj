@@ -62,11 +62,13 @@
   <ItemGroup>
     <Compile Include="Block.cs" />
     <Compile Include="BlockEventArgs.cs" />
+    <Compile Include="BlockPlaceTool.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="DebugRenderer.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="IGameInputDriver.cs" />
     <Compile Include="InputDriver.cs" />
+    <Compile Include="IUpdateable.cs" />
     <Compile Include="MeshBlock.cs" />
     <Compile Include="PID.cs" />
     <Compile Include="Player.cs" />
@@ -75,7 +77,9 @@
     <Compile Include="IRenderer.cs" />
     <Compile Include="Scene.cs" />
     <Compile Include="Shader.cs" />
+    <Compile Include="SparseArray3D.cs" />
     <Compile Include="TextureArray.cs" />
+    <Compile Include="Tool.cs" />
     <Compile Include="World.cs" />
     <Compile Include="WorldRenderer.cs" />
     <Compile Include="Block.Templates.cs" />
