@@ -29,13 +29,9 @@ namespace BlocksWorld
         private void World_BlockChanged(object sender, BlockEventArgs e)
         {
             if(e.Block == null)
-            {
                 this.network.RemoveBlock(e.X, e.Y, e.Z);
-            }
             else
-            {
                 this.network.SetBlock(e.X, e.Y, e.Z, e.Block);
-            }
         }
 
         internal void Update(double deltaTime)
