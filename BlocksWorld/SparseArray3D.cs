@@ -1,9 +1,27 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlocksWorld
 {
-    internal class SparseArray3D<T>
+    public sealed class Value3D<T>
+    {
+        public Value3D(int x, int y, int z, T value)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+            this.Value = value;
+        }
+
+        public T Value { get; private set; }
+        public int X { get; private set; }
+        public int Y { get; private set; }
+        public int Z { get; private set; }
+    }
+
+    public sealed class SparseArray3D<T> : IEnumerable<Value3D<T>>
     {
         private int minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0;
         private readonly Dictionary<int, Dictionary<int, Dictionary<int, T>>> items = new Dictionary<int, Dictionary<int, Dictionary<int, T>>>();
@@ -54,5 +72,15 @@ namespace BlocksWorld
 
         internal int GetLowerZ() { return this.minZ; }
         internal int GetUpperZ() { return this.maxZ; }
+
+        public IEnumerator<Value3D<T>> GetEnumerator()
+        {
+            return this.items.SelectMany(x => x.Value.SelectMany(y => y.Value.Select(z => new Value3D<T>(x.Key, y.Key, z.Key, z.Value)))).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace BlocksWorld
 {
@@ -28,11 +29,27 @@ namespace BlocksWorld
         }
 
         public abstract IEnumerable<WorldRenderer.Vertex> CreateMesh(AdjacentBlocks neighborhood);
+
+        public virtual void Serialize(BinaryWriter bw)
+        {
+
+        }
+
+        public virtual void Deserialize(BinaryReader br)
+        {
+
+        }
     }
 
     public sealed partial class BasicBlock : Block
     {
         int texture;
+
+        public BasicBlock() :
+            this(0)
+        {
+
+        }
 
         public BasicBlock(int texture)
         {
@@ -80,6 +97,26 @@ namespace BlocksWorld
                 instance[i].color = color;
             }
             return instance;
+        }
+
+        public override void Serialize(BinaryWriter bw)
+        {
+            bw.Write(this.texture);
+            bw.Write(this.Color.X);
+            bw.Write(this.Color.Y);
+            bw.Write(this.Color.Z);
+            base.Serialize(bw);
+        }
+
+        public override void Deserialize(BinaryReader br)
+        {
+            Vector3 color;
+            this.texture = br.ReadInt32();
+            color.X = br.ReadSingle();
+            color.Y = br.ReadSingle();
+            color.Z = br.ReadSingle();
+            this.Color = color;
+            base.Deserialize(br);
         }
     }
 }

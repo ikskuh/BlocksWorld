@@ -7,6 +7,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using System;
+using System.IO;
 
 namespace BlocksWorld
 {
@@ -24,30 +25,37 @@ namespace BlocksWorld
 
         public WorldScene()
         {
-            this.world = new World(32, 16, 32);
+            this.world = new World();
+            if (File.Exists("world.dat"))
+            {
+                this.world.Load("world.dat");
+            }
+            else
+            {
+                for (int x = 0; x <= 32; x++)
+                {
+                    for (int z = 0; z < 32; z++)
+                    {
+                        this.world[x, 0, z] = new BasicBlock(2);
+                    }
+                }
+
+                this.world[1, 1, 1] = new BasicBlock(1);
+
+                for (int x = 0; x < 32; x++)
+                {
+                    for (int y = 1; y < 4; y++)
+                    {
+                        if ((x != 16) || (y >= 3))
+                            this.world[x, y, 8] = new BasicBlock(3);
+                    }
+                }
+            }
 
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
-            for (int x = 0; x <= 32; x++)
-            {
-                for (int z = 0; z < 32; z++)
-                {
-                    this.world[x, 0, z] = new BasicBlock(2);
-                }
-            }
-
-            this.world[1, 1, 1] = new BasicBlock(1);
-
-            for (int x = 0; x < 32; x++)
-            {
-                for (int y = 1; y < 4; y++)
-                {
-                    if ((x != 16) || (y >= 3))
-                        this.world[x, y, 8] = new BasicBlock(3);
-                }
-            }
-            
+            // Create player
             {
                 this.player = new Player(this.world);
                 this.player.Tool = new BlockPlaceTool(this.world);
@@ -77,6 +85,9 @@ namespace BlocksWorld
             this.player.UpdateFrame(input, time);
             
             this.world.Step((float)time, false);
+
+            if (input.GetButtonDown(Key.F5))
+                this.world.Save("world.dat");
         }
 
         public override void RenderFrame(double time)
