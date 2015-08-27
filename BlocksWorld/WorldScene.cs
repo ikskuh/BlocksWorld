@@ -25,8 +25,7 @@ namespace BlocksWorld
         double totalTime = 0.0;
         private Player player;
         private TextureArray textures;
-
-        private bool connected = false;
+        
         private Network network;
 
         public WorldScene()
@@ -41,6 +40,30 @@ namespace BlocksWorld
 
             this.network[NetworkPhrase.LoadWorld] = this.LoadWorldFromNetwork;
             this.network[NetworkPhrase.SpawnPlayer] = this.SpawnPlayer;
+            this.network[NetworkPhrase.RemoveBlock] = this.RemoveBlock;
+            this.network[NetworkPhrase.SetBlock] = this.SetBlock;
+        }
+
+        private void SetBlock(BinaryReader reader)
+        {
+            int x = reader.ReadInt32();
+            int y = reader.ReadInt32();
+            int z = reader.ReadInt32();
+            string typeName = reader.ReadString();
+            Type type = Type.GetType(typeName);
+            if (type == null)
+                throw new InvalidDataException();
+            Block block = Activator.CreateInstance(type) as Block;
+            block.Deserialize(reader);
+            this.world[x, y, z] = block;
+        }
+
+        private void RemoveBlock(BinaryReader reader)
+        {
+            int x = reader.ReadInt32();
+            int y = reader.ReadInt32();
+            int z = reader.ReadInt32();
+            this.world[x, y, z] = null;
         }
 
         private void SpawnPlayer(BinaryReader reader)
@@ -59,7 +82,7 @@ namespace BlocksWorld
         void CreatePlayer(JVector spawn)
         {
             this.player = new Player(this.world);
-            this.player.Tool = new BlockPlaceTool(this.world);
+            this.player.Tool = new BlockPlaceTool(this.network, this.world);
             this.player.Position = spawn;
 
             this.world.AddBody(this.player);
@@ -87,7 +110,10 @@ namespace BlocksWorld
             if (this.player != null)
                 this.player.UpdateFrame(input, time);
 
-            this.world.Step((float)time, false);
+            lock (typeof(World))
+            {
+                this.world.Step((float)time, true);
+            }
 
             if (input.GetButtonDown(Key.F5))
                 this.world.Save("world.dat");

@@ -10,7 +10,8 @@ namespace BlocksWorld
     {
         private World world;
 
-        public BlockPlaceTool(World world)
+        public BlockPlaceTool(Network network, World world) : 
+            base(network)
         {
             this.world = world;
         }
@@ -26,7 +27,13 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            this.world[x, y, z] = null;
+            this.Network.Send(NetworkPhrase.RemoveBlock, (s) =>
+            {
+                s.Write((int)x);
+                s.Write((int)y);
+                s.Write((int)z);
+            });
+            // this.world[x, y, z] = null;
         }
 
         public override void SecondaryUse(FirstPersonCamera cam)
@@ -40,7 +47,16 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            this.world[x, y, z] = new BasicBlock(4);
+            var b = new BasicBlock(4);
+
+            this.Network.Send(NetworkPhrase.SetBlock, (s) =>
+            {
+                s.Write(x);
+                s.Write(y);
+                s.Write(z);
+                s.Write(b.GetType().AssemblyQualifiedName);
+                b.Serialize(s);
+            });
         }
 
         private Focus TraceFromScreen(FirstPersonCamera firstPersonCamera)

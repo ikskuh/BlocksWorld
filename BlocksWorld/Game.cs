@@ -1,6 +1,7 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Input;
 using System;
 
 namespace BlocksWorld
@@ -34,6 +35,8 @@ namespace BlocksWorld
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            if (input.GetButtonDown(Key.F8))
+                Program.StartClient();
             this.scene.UpdateFrame(this.input, e.Time);
 
             this.input.Reset();

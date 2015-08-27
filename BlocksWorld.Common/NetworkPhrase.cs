@@ -11,5 +11,7 @@ namespace BlocksWorld
         None,
         LoadWorld,
         SpawnPlayer,
+        SetBlock,
+        RemoveBlock,
     }
 }

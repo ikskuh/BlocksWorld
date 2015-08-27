@@ -34,11 +34,12 @@ namespace BlocksWorld
             server.Start();
             BeginAccept();
 
-            Stopwatch timer = Stopwatch.StartNew();
+            Stopwatch timer = new Stopwatch();
             while(true)
             {
                 double deltaTime = timer.Elapsed.TotalSeconds;
-                lock(this.clients)
+                timer.Restart();
+                lock (this.clients)
                 {
                     foreach (var client in this.clients)
                     {
@@ -47,7 +48,6 @@ namespace BlocksWorld
                     this.clients.RemoveWhere(c =>(c.IsAlive == false));
                 }
                 Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
-                timer.Restart();
             }
         }
 
@@ -94,6 +94,8 @@ namespace BlocksWorld
             {
                 this.clients.Add(client);
             }
+
+            this.BeginAccept();
         }
 
         public World World
