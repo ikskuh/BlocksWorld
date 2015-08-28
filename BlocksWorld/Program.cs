@@ -37,15 +37,5 @@ namespace BlocksWorld
                 game.Run(60, 60);
             }
         }
-
-        public static JVector Jitter(this Vector3 tk)
-        {
-            return new JVector(tk.X, tk.Y, tk.Z);
-        }
-
-        public static Vector3 TK(this JVector jitter)
-        {
-            return new Vector3(jitter.X, jitter.Y, jitter.Z);
-        }
     }
 }

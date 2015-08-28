@@ -29,6 +29,8 @@ namespace BlocksWorld
         private Network network;
         private BasicReceiver receiver;
 
+        MeshModel demoModel;
+
         public WorldScene()
         {
             this.world = new World();
@@ -73,6 +75,9 @@ namespace BlocksWorld
                 "BlocksWorld.Shaders.Object.fs");
 
             this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
+
+            this.demoModel = MeshModel.LoadFromFile(
+                "./Models/container.obj");
 
             this.debug.Load();
             this.renderer.Load();
@@ -136,6 +141,9 @@ namespace BlocksWorld
                 GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
 
                 this.renderer.Render(cam, time);
+
+
+                this.demoModel.Render(cam, time);
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
                 GL.UseProgram(0);

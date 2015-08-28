@@ -29,42 +29,7 @@ namespace BlocksWorld
             GL.BindVertexArray(this.vao);
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribPointer(
-                    0,
-                    3,
-                    VertexAttribPointerType.Float,
-                    false,
-                    BlockVertex.SizeInBytes,
-                    0);
-
-                GL.EnableVertexAttribArray(1);
-                GL.VertexAttribPointer(
-                    1,
-                    3,
-                    VertexAttribPointerType.Float,
-                    false,
-                    BlockVertex.SizeInBytes,
-                    Vector3.SizeInBytes);
-
-                GL.EnableVertexAttribArray(2);
-                GL.VertexAttribPointer(
-                    2,
-                    3,
-                    VertexAttribPointerType.Float,
-                    false,
-                    BlockVertex.SizeInBytes,
-                    2 * Vector3.SizeInBytes);
-
-                GL.EnableVertexAttribArray(3);
-                GL.VertexAttribPointer(
-                    3,
-                    3,
-                    VertexAttribPointerType.Float,
-                    false,
-                    BlockVertex.SizeInBytes,
-                    3 * Vector3.SizeInBytes);
+                BlockVertex.InitializeVertexBinding();
             }
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
