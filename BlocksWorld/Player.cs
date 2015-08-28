@@ -136,5 +136,11 @@ namespace BlocksWorld
         public Tool Tool { get; set; }
 
         public float BodyRotation { get { return MathHelper.DegreesToRadians(this.camera.Pan); } }
+
+        public Vector3 FeetPosition { get
+            {
+                return this.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f);
+            }
+        }
     }
 }

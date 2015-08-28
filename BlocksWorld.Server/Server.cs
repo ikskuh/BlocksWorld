@@ -17,6 +17,7 @@ namespace BlocksWorld
         private TcpListener server;
         private HashSet<Client> clients = new HashSet<Client>();
         private World world;
+        private volatile int clientIdCounter = 0;
 
         static void Main(string[] args)
         {
@@ -35,7 +36,7 @@ namespace BlocksWorld
             BeginAccept();
 
             Stopwatch timer = new Stopwatch();
-            while(true)
+            while (true)
             {
                 double deltaTime = timer.Elapsed.TotalSeconds;
                 timer.Restart();
@@ -45,7 +46,7 @@ namespace BlocksWorld
                     {
                         client.Update(deltaTime);
                     }
-                    this.clients.RemoveWhere(c =>(c.IsAlive == false));
+                    this.clients.RemoveWhere(c => (c.IsAlive == false));
                 }
                 Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
             }
@@ -88,9 +89,9 @@ namespace BlocksWorld
         private void EndAccept(IAsyncResult ar)
         {
             var tcp = this.server.EndAcceptTcpClient(ar);
-            var client = new Client(this, tcp);
+            var client = new Client(this, tcp, ++clientIdCounter);
 
-            lock(this.clients)
+            lock (this.clients)
             {
                 this.clients.Add(client);
             }
@@ -103,6 +104,17 @@ namespace BlocksWorld
             get
             {
                 return world;
+            }
+        }
+
+        public IEnumerable<Client> Clients
+        {
+            get
+            {
+                lock (this.clients)
+                {
+                    return this.clients.ToArray();
+                }
             }
         }
     }

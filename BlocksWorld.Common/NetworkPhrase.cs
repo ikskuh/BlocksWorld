@@ -9,9 +9,25 @@ namespace BlocksWorld
     public enum NetworkPhrase
     {
         None,
-        LoadWorld,
-        SpawnPlayer,
+        
+        /****************************
+         * Client & Server 
+         ****************************/
         SetBlock,
         RemoveBlock,
+
+        /****************************
+         * To Client Only 
+         ****************************/
+        UpdateProxy,
+        DestroyProxy,
+
+        LoadWorld,
+        SpawnPlayer,
+        
+        /****************************
+         * To Server Only 
+         ****************************/
+        SetPlayer
     }
 }

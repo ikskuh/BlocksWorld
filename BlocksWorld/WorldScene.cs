@@ -9,6 +9,7 @@ using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
@@ -25,16 +26,20 @@ namespace BlocksWorld
         double totalTime = 0.0;
         private Player player;
         private TextureArray textures;
-        
+
         private Network network;
         private BasicReceiver receiver;
 
-        MeshModel demoModel;
+        MeshModel playerModel;
+
+        Dictionary<int, Vector4> proxies = new Dictionary<int, Vector4>();
+
+        int networkUpdateCounter = 0;
 
         public WorldScene()
         {
             this.world = new World();
-            
+
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
 
@@ -43,8 +48,28 @@ namespace BlocksWorld
 
             this.network[NetworkPhrase.LoadWorld] = this.LoadWorldFromNetwork;
             this.network[NetworkPhrase.SpawnPlayer] = this.SpawnPlayer;
+            this.network[NetworkPhrase.UpdateProxy] = this.UpdateProxy;
+            this.network[NetworkPhrase.DestroyProxy] = this.DestroyProxy;
         }
-        
+
+        private void UpdateProxy(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            float x = reader.ReadSingle();
+            float y = reader.ReadSingle();
+            float z = reader.ReadSingle();
+            float rot = reader.ReadSingle();
+
+            // Takes creation into account as well
+            proxies[id] = new Vector4(x, y, z, rot);
+        }
+
+        private void DestroyProxy(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            proxies.Remove(id);
+        }
+
         private void SpawnPlayer(BinaryReader reader)
         {
             float x = reader.ReadSingle();
@@ -76,7 +101,7 @@ namespace BlocksWorld
 
             this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
 
-            this.demoModel = MeshModel.LoadFromResource(
+            this.playerModel = MeshModel.LoadFromResource(
                 "BlocksWorld.Models.Player.bwm");
 
             this.debug.Load();
@@ -99,6 +124,20 @@ namespace BlocksWorld
 
             if (input.GetButtonDown(Key.F5))
                 this.world.Save("world.dat");
+
+            this.networkUpdateCounter++;
+            if (this.networkUpdateCounter > 5)
+            {
+                this.network.Send(NetworkPhrase.SetPlayer, (s) =>
+                {
+                    var pos = this.player.FeetPosition;
+                    s.Write(pos.X);
+                    s.Write(pos.Y);
+                    s.Write(pos.Z);
+                    s.Write(this.player.BodyRotation);
+                });
+                this.networkUpdateCounter = 0;
+            }
         }
 
         public override void RenderFrame(double time)
@@ -129,8 +168,7 @@ namespace BlocksWorld
             // Draw world
             {
                 GL.UseProgram(this.objectShader);
-
-
+                
                 int loc = GL.GetUniformLocation(this.objectShader, "uTextures");
                 if (loc >= 0)
                 {
@@ -148,19 +186,20 @@ namespace BlocksWorld
 
                 this.renderer.Render(cam, time);
 
-
-                worldViewProjection =
-                   Matrix4.CreateRotationY(this.player.BodyRotation) *
-                   Matrix4.CreateTranslation(this.player.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f)) *
-                   // Matrix4.CreateTranslation(new Vector3(13, 0.5f, 13)) *
-                   cam.CreateViewMatrix() *
-                   cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-                if (loc >= 0)
+                foreach (var player in this.proxies.Concat(new[] { new KeyValuePair<int, Vector4>(-1, new Vector4(this.player.FeetPosition, this.player.BodyRotation))}))
                 {
-                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
-                }
+                    worldViewProjection =
+                       Matrix4.CreateRotationY(player.Value.W) *
+                       Matrix4.CreateTranslation(player.Value.Xyz) *
+                       cam.CreateViewMatrix() *
+                       cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+                    if (loc >= 0)
+                    {
+                        GL.UniformMatrix4(loc, false, ref worldViewProjection);
+                    }
 
-                this.demoModel.Render(cam, time);
+                    this.playerModel.Render(cam, time);
+                }
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
                 GL.UseProgram(0);
