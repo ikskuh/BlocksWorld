@@ -78,6 +78,7 @@
     </Compile>
     <Compile Include="Game.cs" />
     <Compile Include="IGameInputDriver.cs" />
+    <Compile Include="IInteractiveEnvironment.cs" />
     <Compile Include="InputDriver.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="MeshBlock.cs" />
@@ -92,8 +93,10 @@
     <Compile Include="Proxy.cs" />
     <Compile Include="Scene.cs" />
     <Compile Include="Shader.cs" />
+    <Compile Include="SpawnTool.cs" />
     <Compile Include="TextureArray.cs" />
     <Compile Include="Tool.cs" />
+    <Compile Include="UIRenderer.cs" />
     <Compile Include="WorldRenderer.cs" />
     <Compile Include="WorldScene.cs" />
   </ItemGroup>
@@ -106,6 +109,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Shaders\Object.fs" />
     <EmbeddedResource Include="Shaders\Object.vs" />
+    <EmbeddedResource Include="Shaders\Texture.fs" />
+    <EmbeddedResource Include="Shaders\ScreenSpace.vs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shaders\Debug.fs" />
@@ -118,6 +123,9 @@
       <Project>{e8cce420-36d3-4f82-9bfc-270636cc7cde}</Project>
       <Name>BlocksWorld.Common</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Textures\UI.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -15,10 +15,11 @@ using System.Text;
 
 namespace BlocksWorld
 {
-    public class WorldScene : Scene
+    public class WorldScene : Scene, IInteractiveEnvironment
     {
         World world;
         WorldRenderer renderer;
+        UIRenderer ui;
         DebugRenderer debug;
 
         int objectShader;
@@ -42,6 +43,7 @@ namespace BlocksWorld
 
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
+            this.ui = new UIRenderer();
 
             this.network = new Network(new TcpClient("localhost", 4523));
             this.receiver = new BasicReceiver(this.network, this.world);
@@ -89,7 +91,8 @@ namespace BlocksWorld
         void CreatePlayer(JVector spawn)
         {
             this.player = new Player(this.world);
-            this.player.Tool = new BlockPlaceTool(this.network, this.world);
+            // this.player.Tool = new BlockPlaceTool(this);
+            this.player.Tool = new SpawnTool(this);
             this.player.Position = spawn;
 
             this.world.AddBody(this.player);
@@ -109,6 +112,7 @@ namespace BlocksWorld
 
             this.debug.Load();
             this.renderer.Load();
+            this.ui.Load();
         }
 
         public override void UpdateFrame(IGameInputDriver input, double time)
@@ -216,6 +220,8 @@ namespace BlocksWorld
             */
 
             this.debug.Render(cam, time);
+
+            this.ui.Render(cam, time);
         }
 
         private void RenderPlayer(Camera cam, Vector3 position, float rotation, int loc, double time)
@@ -231,6 +237,16 @@ namespace BlocksWorld
             }
 
             this.playerModel.Render(cam, time);
+        }
+
+        public Network Network
+        {
+            get { return this.network; }
+        }
+
+        public World World
+        {
+            get { return this.world; }
         }
     }
 }

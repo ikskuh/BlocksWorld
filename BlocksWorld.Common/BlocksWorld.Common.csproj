@@ -67,6 +67,8 @@
     <Compile Include="PhraseEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SparseArray3D.cs" />
+    <Compile Include="TraceOptions.cs" />
+    <Compile Include="TraceResult.cs" />
     <Compile Include="World.cs" />
     <Compile Include="World.IO.cs" />
   </ItemGroup>

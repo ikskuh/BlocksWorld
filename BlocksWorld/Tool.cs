@@ -1,24 +1,39 @@
-﻿namespace BlocksWorld
+﻿using OpenTK;
+
+namespace BlocksWorld
 {
     public abstract class Tool
     {
-        private readonly Network network;
+        private readonly IInteractiveEnvironment environment;
 
-        protected Tool(Network network)
+        protected Tool(IInteractiveEnvironment environment)
         {
-            this.network = network;
+            this.environment = environment;
+        }
+
+        public IInteractiveEnvironment Environment
+        {
+            get { return this.environment; }
         }
 
         public Network Network
         {
             get
             {
-                return network;
+                return this.environment.Network;
             }
         }
 
-        public abstract void PrimaryUse(FirstPersonCamera cam);
+        public World World
+        {
+            get
+            {
+                return this.environment.World;
+            }
+        }
 
-        public virtual void SecondaryUse(FirstPersonCamera cam) { }
+        public abstract void PrimaryUse(Vector3 origin, Vector3 direction);
+
+        public virtual void SecondaryUse(Vector3 origin, Vector3 direction) { }
     }
 }

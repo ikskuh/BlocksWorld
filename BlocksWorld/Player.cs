@@ -118,14 +118,17 @@ namespace BlocksWorld
                 }
             }
 
+            var origin = this.camera.GetEye();
+            var direction = this.camera.GetForward();
+
             if(input.GetMouseDown(MouseButton.Left))
             {
-                this.Tool?.PrimaryUse(this.camera);
+                this.Tool?.PrimaryUse(origin, direction);
             }
 
             if (input.GetMouseDown(MouseButton.Right))
             {
-                this.Tool?.SecondaryUse(this.camera);
+                this.Tool?.SecondaryUse(origin, direction);
             }
         }
 

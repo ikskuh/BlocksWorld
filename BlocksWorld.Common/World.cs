@@ -2,6 +2,8 @@
 using Jitter.Dynamics;
 using Jitter.LinearMath;
 using System;
+using OpenTK;
+using Jitter.Collision;
 
 namespace BlocksWorld
 {
@@ -62,6 +64,32 @@ namespace BlocksWorld
 
                 this.OnBlockChanged(value, x, y, z);
             }
+        }
+
+        public TraceResult Trace(JVector origin, JVector direction, TraceOptions options)
+        {
+            if (direction.Length() < 0.1f)
+                return null;
+
+            RaycastCallback callback = (b, n, f) =>
+            {
+                return b.IsStatic;
+            };
+            RigidBody body;
+            JVector normal;
+            float friction;
+
+            if (this.CollisionSystem.Raycast(
+                origin,
+                direction,
+                callback,
+                out body,
+                out normal,
+                out friction))
+            {
+                return new TraceResult(body, friction, origin + friction * direction, normal);
+            }
+            return null;
         }
 
         public int LowerX { get { return this.blocks.GetLowerX(); } }

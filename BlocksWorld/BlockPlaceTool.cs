@@ -2,23 +2,22 @@
 using Jitter.Collision;
 using Jitter.Dynamics;
 using Jitter.LinearMath;
+using OpenTK;
 using System;
 
 namespace BlocksWorld
 {
     internal class BlockPlaceTool : Tool
     {
-        private World world;
-
-        public BlockPlaceTool(Network network, World world) : 
-            base(network)
+        public BlockPlaceTool(IInteractiveEnvironment env) : 
+            base(env)
         {
-            this.world = world;
+
         }
 
-        public override void PrimaryUse(FirstPersonCamera cam)
+        public override void PrimaryUse(Vector3 origin, Vector3 direction)
         {
-            var focus = this.TraceFromScreen(cam);
+            var focus = this.World.Trace(origin.Jitter(), direction.Jitter(), TraceOptions.IgnoreDynamic);
             if (focus == null)
                 return;
 
@@ -30,9 +29,9 @@ namespace BlocksWorld
             this.Network.RemoveBlock(x, y, z);
         }
 
-        public override void SecondaryUse(FirstPersonCamera cam)
+        public override void SecondaryUse(Vector3 origin, Vector3 direction)
         {
-            var focus = this.TraceFromScreen(cam);
+            var focus = this.World.Trace(origin.Jitter(), direction.Jitter(), TraceOptions.IgnoreDynamic);
             if (focus == null)
                 return;
 
@@ -42,52 +41,6 @@ namespace BlocksWorld
             int z = (int)Math.Round(block.Z);
 
             this.Network.SetBlock(x, y, z, new BasicBlock(4));
-        }
-
-        private Focus TraceFromScreen(FirstPersonCamera firstPersonCamera)
-        {
-            if (firstPersonCamera == null)
-                return null;
-
-            RaycastCallback callback = (b, n, f) =>
-            {
-                return b.IsStatic;
-            };
-            RigidBody body;
-            JVector normal;
-            float friction;
-
-            var from = firstPersonCamera.GetEye().Jitter();
-            var dir = firstPersonCamera.GetForward().Jitter();
-
-            if (this.world.CollisionSystem.Raycast(
-                from,
-                dir,
-                callback,
-                out body,
-                out normal,
-                out friction))
-            {
-                return new Focus()
-                {
-                    Position = from + friction * dir,
-                    Normal = normal
-                };
-            }
-            return null;
-        }
-
-        class Focus
-        {
-            public JVector Position
-            {
-                get; set;
-            }
-
-            public JVector Normal
-            {
-                get; set;
-            }
         }
     }
 }
