@@ -21,7 +21,7 @@ namespace BlocksWorld
                 3, 3,
                 GraphicsContextFlags.Debug | GraphicsContextFlags.ForwardCompatible)
         {
-            this.scene = new WorldScene();
+
         }
 
         protected override void OnLoad(EventArgs e)
@@ -30,7 +30,21 @@ namespace BlocksWorld
 
             GL.DebugMessageCallback(this.DebugProc, IntPtr.Zero);
 
-            this.scene.Load();
+            // this.SetScene(new WorldScene());
+            this.SetScene(new ModelEditorScene());
+        }
+
+        private void SetScene(Scene scene)
+        {
+            if (this.scene != null)
+                this.scene.Disable();
+            this.scene = scene;
+            if (this.scene != null)
+            {
+                if (this.scene.IsLoaded == false)
+                    this.scene.Load();
+                this.scene.Enable();
+            }
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)

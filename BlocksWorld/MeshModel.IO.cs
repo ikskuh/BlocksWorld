@@ -11,11 +11,18 @@ namespace BlocksWorld
 {
     partial class MeshModel
     {
-        public static MeshModel LoadFromFile(string v)
+        public static MeshModel LoadFromFile(string fileName)
         {
-            using (var fs = File.Open(v, FileMode.Open, FileAccess.Read))
+            using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))
             {
-                return Load(fs, Path.GetExtension(v));
+                if (Path.GetExtension(fileName) == ".bwm")
+                {
+                    return Deserialize(fs, true);
+                }
+                else
+                {
+                    return Load(fs, Path.GetExtension(fileName));
+                }
             }
         }
 
@@ -58,11 +65,163 @@ namespace BlocksWorld
                         vertices[v].uv.Z = texture;
                     }
 
-                    meshes.Add(new Mesh(indices, vertices));
+                    meshes.Add(new Mesh(indices, vertices, texture));
                 }
 
                 return new MeshModel(meshes);
             }
+        }
+
+        public void Serialize(Stream stream)
+        {
+            this.Serialize(stream, false);
+        }
+
+        public void Serialize(Stream stream, bool leaveOpen)
+        {
+            using (var bw = new BinaryWriter(stream, Encoding.UTF8, leaveOpen))
+            {
+                this.Serialize(bw);
+            }
+        }
+
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write("MESHMODEL");
+            writer.Write((byte)1);
+            writer.Write((byte)0);
+            writer.Write(this.meshes.Count);
+            for (int i = 0; i < this.meshes.Count; i++)
+            {
+                this.meshes[i].Serialize(writer);
+            }
+        }
+
+
+        public static MeshModel LoadFromResource(string name)
+        {
+            using (var stream = typeof(MeshModel).Assembly.GetManifestResourceStream(name))
+            {
+                return Deserialize(stream, true);
+            }
+        }
+
+        public static MeshModel Load(Stream stream)
+        {
+            return Deserialize(stream, false);
+        }
+
+        public static MeshModel Deserialize(Stream stream, bool leaveOpen)
+        {
+            using (var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen))
+            {
+                return Deserialize(reader);
+            }
+        }
+
+        public static MeshModel Deserialize(BinaryReader reader)
+        {
+            Action<bool> assert = (b) => { if (!b) throw new InvalidDataException(); };
+            assert(reader.ReadString() == "MESHMODEL");
+            assert(reader.ReadByte() == 1);
+            assert(reader.ReadByte() == 0);
+
+            int meshCount = reader.ReadInt32();
+
+            List<Mesh> meshes = new List<Mesh>();
+            for (int i = 0; i < meshCount; i++)
+            {
+                var mesh = Mesh.Deserialize(reader);
+                meshes.Add(mesh);
+            }
+
+            return new MeshModel(meshes);
+        }
+    }
+
+    partial class Mesh
+    {
+        public void Serialize(Stream stream)
+        {
+            this.Serialize(stream, false);
+        }
+
+        public void Serialize(Stream stream, bool leaveOpen)
+        {
+            using (var bw = new BinaryWriter(stream, Encoding.UTF8, leaveOpen))
+            {
+                this.Serialize(bw);
+            }
+        }
+
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write("MESH");
+            writer.Write((byte)1); // Version
+            writer.Write((byte)0);
+            writer.Write(this.texture);
+            writer.Write(this.vertexCount);
+            writer.Write(this.indexCount);
+
+            for (int i = 0; i < this.vertexCount; i++)
+            {
+                var vertex = this.vertices[i];
+
+                writer.Write(vertex.position);
+                writer.Write(vertex.normal);
+                writer.Write(vertex.color);
+                writer.Write(vertex.uv);
+            }
+
+            for (int i = 0; i < this.indexCount; i++)
+            {
+                writer.Write(this.indices[i]);
+            }
+        }
+
+        public static Mesh Deserialize(Stream stream)
+        {
+            return Deserialize(stream, false);
+        }
+
+        public static Mesh Deserialize(Stream stream, bool leaveOpen)
+        {
+            using (var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen))
+            {
+                return Deserialize(reader);
+            }
+        }
+
+        public static Mesh Deserialize(BinaryReader reader)
+        {
+            Action<bool> assert = (b) => { if (!b) throw new InvalidDataException(); };
+            assert(reader.ReadString() == "MESH");
+            assert(reader.ReadByte() == 1);
+            assert(reader.ReadByte() == 0);
+            int texture = reader.ReadInt32();
+            int vertexCount = reader.ReadInt32();
+            int indexCount = reader.ReadInt32();
+
+            var vertices = new BlockVertex[vertexCount];
+            for (int i = 0; i < vertexCount; i++)
+            {
+                var vertex = new BlockVertex();
+
+                vertex.position = reader.ReadVector3();
+                vertex.normal = reader.ReadVector3();
+                vertex.color = reader.ReadVector3();
+                vertex.uv = reader.ReadVector3();
+
+                vertices[i] = vertex;
+            }
+
+            var indices = new int[indexCount];
+            for (int i = 0; i < indexCount; i++)
+            {
+                indices[i] = reader.ReadInt32();
+            }
+
+            return new Mesh(indices, vertices, texture);
         }
     }
 }

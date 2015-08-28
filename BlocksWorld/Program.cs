@@ -14,6 +14,7 @@ namespace BlocksWorld
     {
         static int instanceCount = 0;
 
+        [STAThread]
         static void Main(string[] args)
         {
             InitGame();

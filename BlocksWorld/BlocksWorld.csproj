@@ -58,6 +58,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +70,12 @@
     <Compile Include="BlockPlaceTool.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="DebugRenderer.cs" />
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Game.cs" />
     <Compile Include="IGameInputDriver.cs" />
     <Compile Include="InputDriver.cs" />
@@ -76,6 +83,7 @@
     <Compile Include="MeshBlock.cs" />
     <Compile Include="MeshModel.cs" />
     <Compile Include="MeshModel.IO.cs" />
+    <Compile Include="ModelEditorScene.cs" />
     <Compile Include="PID.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
@@ -97,6 +105,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Shaders\Object.fs" />
     <EmbeddedResource Include="Shaders\Object.vs" />
   </ItemGroup>

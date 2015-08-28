@@ -47,13 +47,14 @@ namespace BlocksWorld
                     System.Drawing.Imaging.ImageLockMode.ReadOnly,
                     System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
+                int count = bmp.Height / bmp.Width;
                 GL.TexImage3D(
                     TextureTarget.Texture2DArray,
                     0,
                     PixelInternalFormat.Rgba,
                     bmp.Width,
                     bmp.Width,
-                    bmp.Height / bmp.Width,
+                    count,
                     0,
                     PixelFormat.Bgra,
                     PixelType.UnsignedByte,
@@ -68,7 +69,10 @@ namespace BlocksWorld
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
 
-                return new TextureArray(id);
+                return new TextureArray(id)
+                {
+                    Count = count
+                };
             }
         }
 
@@ -81,5 +85,7 @@ namespace BlocksWorld
         }
 
         public TextureTarget Target { get { return TextureTarget.Texture2DArray; } }
+
+        public int Count { get; private set; }
     }
 }

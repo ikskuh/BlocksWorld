@@ -68,7 +68,7 @@ namespace BlocksWorld
             this.world.AddConstraint(new Jitter.Dynamics.Constraints.SingleBody.FixedAngle(this.player));
         }
 
-        public override void Load()
+        protected override void OnLoad()
         {
             this.objectShader = Shader.CompileFromResource(
                 "BlocksWorld.Shaders.Object.vs",
