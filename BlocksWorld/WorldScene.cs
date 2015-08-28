@@ -32,7 +32,7 @@ namespace BlocksWorld
 
         MeshModel playerModel;
 
-        Dictionary<int, Vector4> proxies = new Dictionary<int, Vector4>();
+        Dictionary<int, Proxy> proxies = new Dictionary<int, Proxy>();
 
         int networkUpdateCounter = 0;
 
@@ -61,7 +61,10 @@ namespace BlocksWorld
             float rot = reader.ReadSingle();
 
             // Takes creation into account as well
-            proxies[id] = new Vector4(x, y, z, rot);
+            var pt = new Vector3(x, y, z);
+            if (proxies.ContainsKey(id) == false)
+                proxies.Add(id, new Proxy(pt, rot));
+            proxies[id].Set(pt, rot);
         }
 
         private void DestroyProxy(BinaryReader reader)
@@ -113,6 +116,9 @@ namespace BlocksWorld
             this.totalTime += time;
 
             this.network.Dispatch();
+
+            foreach (var proxy in this.proxies)
+                proxy.Value.UpdateFrame(input, time);
 
             if (this.player != null)
                 this.player.UpdateFrame(input, time);
@@ -186,20 +192,11 @@ namespace BlocksWorld
 
                 this.renderer.Render(cam, time);
 
-                foreach (var player in this.proxies.Concat(new[] { new KeyValuePair<int, Vector4>(-1, new Vector4(this.player.FeetPosition, this.player.BodyRotation))}))
+                foreach (var player in this.proxies)
                 {
-                    worldViewProjection =
-                       Matrix4.CreateRotationY(player.Value.W) *
-                       Matrix4.CreateTranslation(player.Value.Xyz) *
-                       cam.CreateViewMatrix() *
-                       cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-                    if (loc >= 0)
-                    {
-                        GL.UniformMatrix4(loc, false, ref worldViewProjection);
-                    }
-
-                    this.playerModel.Render(cam, time);
+                    RenderPlayer(cam, player.Value.CurrentPosition, player.Value.CurrentBodyRotation, loc, time);
                 }
+                this.RenderPlayer(cam, this.player.FeetPosition, this.player.BodyRotation, loc, time);
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
                 GL.UseProgram(0);
@@ -219,6 +216,21 @@ namespace BlocksWorld
             */
 
             this.debug.Render(cam, time);
+        }
+
+        private void RenderPlayer(Camera cam, Vector3 position, float rotation, int loc, double time)
+        {
+            Matrix4 worldViewProjection = 
+                Matrix4.CreateRotationY(rotation) *
+                Matrix4.CreateTranslation(position) *
+                cam.CreateViewMatrix() *
+                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+            if (loc >= 0)
+            {
+                GL.UniformMatrix4(loc, false, ref worldViewProjection);
+            }
+
+            this.playerModel.Render(cam, time);
         }
     }
 }
