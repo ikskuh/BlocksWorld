@@ -29,7 +29,10 @@ namespace BlocksWorld
             base(new CapsuleShape(0.9f, 0.4f))
         {
             this.world = world;
-            this.camera = new FirstPersonCamera(this);
+            this.camera = new FirstPersonCamera(this)
+            {
+                EyeHeight = 0.6f
+            };
             this.Material = new Material()
             {
                 StaticFriction = 0.05f,

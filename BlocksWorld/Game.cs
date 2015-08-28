@@ -11,6 +11,9 @@ namespace BlocksWorld
         private Scene scene;
         private InputDriver input;
 
+        WorldScene worldScene;
+        ModelEditorScene modelEditorScene;
+
         public Game() : 
             base(
                 1280, 720,
@@ -21,7 +24,8 @@ namespace BlocksWorld
                 3, 3,
                 GraphicsContextFlags.Debug | GraphicsContextFlags.ForwardCompatible)
         {
-
+            this.modelEditorScene = new ModelEditorScene();
+            this.worldScene = new WorldScene();
         }
 
         protected override void OnLoad(EventArgs e)
@@ -29,9 +33,8 @@ namespace BlocksWorld
             this.input = new InputDriver(this);
 
             GL.DebugMessageCallback(this.DebugProc, IntPtr.Zero);
-
-            // this.SetScene(new WorldScene());
-            this.SetScene(new ModelEditorScene());
+            
+            this.SetScene(this.worldScene);
         }
 
         private void SetScene(Scene scene)
@@ -51,6 +54,10 @@ namespace BlocksWorld
         {
             if (input.GetButtonDown(Key.F8))
                 Program.StartClient();
+
+            if (input.GetButtonDown(Key.F9))
+                this.SetScene(this.scene == this.worldScene ? (Scene)this.modelEditorScene : (Scene)this.worldScene);
+
             this.scene.UpdateFrame(this.input, e.Time);
 
             this.input.Reset();

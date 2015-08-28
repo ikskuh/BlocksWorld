@@ -22,6 +22,8 @@ namespace BlocksWorld
         Form form;
         Panel modelData;
 
+        float pan = 40, tilt = 30;
+
         public ModelEditorScene()
         {
             this.debug = new DebugRenderer();
@@ -202,6 +204,28 @@ namespace BlocksWorld
         public override void UpdateFrame(IGameInputDriver input, double time)
         {
             Application.DoEvents();
+
+            // Move camera
+            if (input.GetMouse(OpenTK.Input.MouseButton.Right))
+            {
+                this.pan -= input.MouseMovement.X;
+                this.tilt -= input.MouseMovement.Y;
+                this.tilt = MathHelper.Clamp(this.tilt, -89, 89);
+            }
+
+            this.camera.Eye = this.camera.Target - 8.0f * this.GetCameraDirection();
+        }
+
+        public Vector3 GetCameraDirection()
+        {
+            Vector3 rot = Vector3.Zero;
+            float pan = MathHelper.DegreesToRadians(this.pan);
+            float tilt = MathHelper.DegreesToRadians(this.tilt);
+
+            rot.X = (float)(Math.Cos(tilt) * Math.Sin(pan));
+            rot.Y = (float)(Math.Sin(tilt));
+            rot.Z = (float)(Math.Cos(tilt) * Math.Cos(pan));
+            return rot;
         }
 
         public override void RenderFrame(double time)

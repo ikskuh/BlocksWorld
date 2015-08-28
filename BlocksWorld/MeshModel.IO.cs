@@ -55,7 +55,7 @@ namespace BlocksWorld
                         vertices[v].position = src[v].TK();
                         vertices[v].color = Vector3.One;
                         if (normals != null)
-                            vertices[v].normal = normals[v].TK();
+                            vertices[v].normal = -normals[v].TK();
                         if (uvs != null)
                             vertices[v].uv = uvs[v].TK();
                         else

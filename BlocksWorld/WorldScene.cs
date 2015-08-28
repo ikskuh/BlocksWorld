@@ -76,8 +76,8 @@ namespace BlocksWorld
 
             this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
 
-            this.demoModel = MeshModel.LoadFromFile(
-                "./Models/container.obj");
+            this.demoModel = MeshModel.LoadFromResource(
+                "BlocksWorld.Models.Player.bwm");
 
             this.debug.Load();
             this.renderer.Load();
@@ -105,6 +105,10 @@ namespace BlocksWorld
         {
             this.debug.Reset();
 
+
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
             GL.ClearColor(Color4.LightSkyBlue);
@@ -125,16 +129,18 @@ namespace BlocksWorld
             // Draw world
             {
                 GL.UseProgram(this.objectShader);
-                int loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
-                if (loc >= 0)
-                {
-                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
-                }
 
-                loc = GL.GetUniformLocation(this.objectShader, "uTextures");
+
+                int loc = GL.GetUniformLocation(this.objectShader, "uTextures");
                 if (loc >= 0)
                 {
                     GL.Uniform1(loc, 0);
+                }
+
+                loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
+                if (loc >= 0)
+                {
+                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
                 }
 
                 GL.ActiveTexture(TextureUnit.Texture0);
@@ -142,6 +148,16 @@ namespace BlocksWorld
 
                 this.renderer.Render(cam, time);
 
+
+                worldViewProjection =
+                   Matrix4.CreateTranslation(this.player.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f)) *
+                   // Matrix4.CreateTranslation(new Vector3(13, 0.5f, 13)) *
+                   cam.CreateViewMatrix() *
+                   cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+                if (loc >= 0)
+                {
+                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
+                }
 
                 this.demoModel.Render(cam, time);
 
