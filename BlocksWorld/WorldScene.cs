@@ -150,6 +150,7 @@ namespace BlocksWorld
 
 
                 worldViewProjection =
+                   Matrix4.CreateRotationY(this.player.BodyRotation) *
                    Matrix4.CreateTranslation(this.player.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f)) *
                    // Matrix4.CreateTranslation(new Vector3(13, 0.5f, 13)) *
                    cam.CreateViewMatrix() *

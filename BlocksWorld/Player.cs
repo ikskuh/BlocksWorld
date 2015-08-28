@@ -134,5 +134,7 @@ namespace BlocksWorld
         public Camera Camera { get { return this.camera; } }
 
         public Tool Tool { get; set; }
+
+        public float BodyRotation { get { return MathHelper.DegreesToRadians(this.camera.Pan); } }
     }
 }
