@@ -49,6 +49,7 @@ namespace BlocksWorld
                 throw new InvalidOperationException();
 
             obj.Changed += Obj_Changed;
+            obj.InterationTriggered += Obj_InterationTriggered;
             this.details.Add(obj);
 
             var body = new RigidBody(new BoxShape(1.5f, 0.2f, 1.0f));
@@ -61,6 +62,17 @@ namespace BlocksWorld
             this.AddBody(body);
 
             this.OnDetailCreated(obj);
+        }
+
+        private void Obj_InterationTriggered(object sender, DetailInteractionEventArgs e)
+        {
+            this.OnDetailInterationTriggered(e);
+        }
+
+        private void OnDetailInterationTriggered(DetailInteractionEventArgs e)
+        {
+            if (this.DetailInterationTriggered != null)
+                this.DetailInterationTriggered(this, e);
         }
 
         private void Obj_Changed(object sender, EventArgs e)
@@ -87,6 +99,7 @@ namespace BlocksWorld
             if (detail == null)
                 return;
             detail.Changed -= Obj_Changed;
+            detail.InterationTriggered -= Obj_InterationTriggered;
             if (this.detailBodies.ContainsKey(id))
             {
                 this.RemoveBody(this.detailBodies[id]);

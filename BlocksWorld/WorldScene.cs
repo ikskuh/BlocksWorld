@@ -172,6 +172,7 @@ namespace BlocksWorld
         {
             this.tools.Add(new Tuple<int, Tool>(1, new BlockPlaceTool(this)));
             this.tools.Add(new Tuple<int, Tool>(2, new SpawnTool(this)));
+            this.tools.Add(new Tuple<int, Tool>(4, new UseTool(this)));
 
             this.player = new Player(this.world);
             this.player.Position = spawn;

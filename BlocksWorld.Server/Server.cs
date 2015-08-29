@@ -66,7 +66,7 @@ namespace BlocksWorld
 
         private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
         {
-            Console.WriteLine("Interaction '{0}' at object {1}", e.Detail.ID, e.Interaction);
+            Console.WriteLine("Interaction '{0}' at object {1}", e.Interaction, e.Detail.ID);
         }
 
         private void LoadWorld()
