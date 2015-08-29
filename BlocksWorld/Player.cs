@@ -16,12 +16,12 @@ namespace BlocksWorld
             Proportial = 1.5f,
             Integral = 0.15f,
             Scale = 1.0f,
-            MaxIntegral = 10.0f,
+            MaxIntegral = 20.0f,
         };
         
         PID.Controller moveXController = movementPid.CreateController();
-
         PID.Controller moveZController = movementPid.CreateController();
+
         private readonly FirstPersonCamera camera;
         private readonly World world;
 

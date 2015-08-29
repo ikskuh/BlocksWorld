@@ -10,9 +10,7 @@ namespace BlocksWorld
 {
     public delegate void PhraseHandler(BinaryReader reader);
 
-    public delegate void PhraseSender(BinaryWriter writer);
-
-    public sealed partial class Network
+    public sealed partial class Network : IPhraseSender
     {
         private readonly TcpClient client;
         private readonly Dictionary<NetworkPhrase, PhraseHandler> dispatcher = new Dictionary<NetworkPhrase, PhraseHandler>();
@@ -35,11 +33,6 @@ namespace BlocksWorld
             this.writer = BinaryWriter.Null;
             this.reader = null;
             this.client.Close();
-        }
-
-        public void Send(NetworkPhrase loadWorld, Func<object, object> p)
-        {
-            throw new NotImplementedException();
         }
 
         public void Dispatch()

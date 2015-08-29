@@ -16,11 +16,11 @@ namespace BlocksWorld
             get { return this.environment; }
         }
 
-        public Network Network
+        public PhraseTranslator Server
         {
             get
             {
-                return this.environment.Network;
+                return this.environment.Server;
             }
         }
 

@@ -12,7 +12,7 @@ using System.IO;
 
 namespace BlocksWorld
 {
-    class Server
+    class Server : IPhraseSender
     {
         private TcpListener server;
         private HashSet<Client> clients = new HashSet<Client>();
@@ -97,6 +97,14 @@ namespace BlocksWorld
             }
 
             this.BeginAccept();
+        }
+
+        void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)
+        {
+            foreach (var client in this.Clients)
+            {
+                client.Network.Send(phrase, sender);
+            }
         }
 
         public World World

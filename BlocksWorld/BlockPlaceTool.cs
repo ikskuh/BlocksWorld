@@ -26,7 +26,7 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            this.Network.RemoveBlock(x, y, z);
+            this.Server.RemoveBlock(x, y, z);
         }
 
         public override void SecondaryUse(Vector3 origin, Vector3 direction)
@@ -40,7 +40,7 @@ namespace BlocksWorld
             int y = (int)Math.Round(block.Y);
             int z = (int)Math.Round(block.Z);
 
-            this.Network.SetBlock(x, y, z, new BasicBlock(4));
+            this.Server.SetBlock(x, y, z, new BasicBlock(4));
         }
     }
 }

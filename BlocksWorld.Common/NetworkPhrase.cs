@@ -15,6 +15,8 @@ namespace BlocksWorld
          ****************************/
         SetBlock,
         RemoveBlock,
+        UpdateDetail,
+        DestroyDetail,
 
         /****************************
          * To Client Only 
@@ -28,6 +30,6 @@ namespace BlocksWorld
         /****************************
          * To Server Only 
          ****************************/
-        SetPlayer
+        SetPlayer,
     }
 }

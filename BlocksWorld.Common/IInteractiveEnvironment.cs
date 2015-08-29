@@ -2,7 +2,7 @@
 {
     public interface IInteractiveEnvironment
     {
-        Network Network { get; }
+        PhraseTranslator Server { get; }
 
         World World { get; }
     }

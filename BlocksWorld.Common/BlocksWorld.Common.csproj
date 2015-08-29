@@ -60,7 +60,14 @@
     <Compile Include="Block.Templates.cs" />
     <Compile Include="BlockEventArgs.cs" />
     <Compile Include="BlockVertex.cs" />
+    <Compile Include="Camera.cs" />
+    <Compile Include="DetailObject.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="IGameInputDriver.cs" />
+    <Compile Include="IInteractiveEnvironment.cs" />
+    <Compile Include="IPhraseSender.cs" />
+    <Compile Include="IRenderer.cs" />
+    <Compile Include="IUpdateable.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Network.Phrases.cs" />
     <Compile Include="NetworkPhrase.cs" />

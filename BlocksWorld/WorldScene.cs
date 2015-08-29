@@ -34,12 +34,15 @@ namespace BlocksWorld
         MeshModel playerModel;
 
         Dictionary<int, Proxy> proxies = new Dictionary<int, Proxy>();
-        // Dictionary<int, Entity>
+
+        Dictionary<int, DetailObject> details = new Dictionary<int, DetailObject>();
+        Dictionary<string, MeshModel> models = new Dictionary<string, MeshModel>();
 
         int currentTool = 0;
         List<Tuple<int, Tool>> tools = new List<Tuple<int, Tool>>();
 
         int networkUpdateCounter = 0;
+        private PhraseTranslator sender;
 
         public WorldScene()
         {
@@ -51,11 +54,49 @@ namespace BlocksWorld
 
             this.network = new Network(new TcpClient("localhost", 4523));
             this.receiver = new BasicReceiver(this.network, this.world);
+            this.sender = new PhraseTranslator(this.network);
 
             this.network[NetworkPhrase.LoadWorld] = this.LoadWorldFromNetwork;
             this.network[NetworkPhrase.SpawnPlayer] = this.SpawnPlayer;
             this.network[NetworkPhrase.UpdateProxy] = this.UpdateProxy;
             this.network[NetworkPhrase.DestroyProxy] = this.DestroyProxy;
+
+            this.network[NetworkPhrase.UpdateDetail] = this.UpdateDetail;
+            this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
+        }
+
+        private void DestroyDetail(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            this.details.Remove(id);
+        }
+
+        private void UpdateDetail(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            
+            float x = reader.ReadSingle();
+            float y = reader.ReadSingle();
+            float z = reader.ReadSingle();
+            float rot = reader.ReadSingle();
+            string model = reader.ReadString();
+
+            DetailObject obj = this.details[id] ?? new DetailObject(id);
+
+            obj.Position = new Vector3(x, y, z);
+            obj.Rotation = rot;
+            obj.Model = model;
+
+            this.details[id] = obj;
+        }
+
+        private MeshModel GetModelFromName(string model)
+        {
+            if (this.models.ContainsKey(model) == false)
+            {
+                this.models[model] = MeshModel.LoadFromFile("./Models/" + Path.GetFileNameWithoutExtension(model) + ".bwm");
+            }
+            return this.models[model];
         }
 
         private void UpdateProxy(BinaryReader reader)
@@ -207,6 +248,13 @@ namespace BlocksWorld
 
                 this.renderer.Render(cam, time);
 
+                foreach(var detail in this.details.Values)
+                {
+                    if (detail.Model == null)
+                        continue;
+                    this.RenderDetail(cam, detail, loc, time);
+                }
+
                 foreach (var player in this.proxies)
                 {
                     RenderPlayer(cam, player.Value.CurrentPosition, player.Value.CurrentBodyRotation, loc, time);
@@ -245,6 +293,25 @@ namespace BlocksWorld
             this.ui.Render(cam, time);
         }
 
+        private void RenderDetail(Camera cam, DetailObject detail, int loc, double time)
+        {
+            Matrix4 worldViewProjection =
+                Matrix4.CreateRotationY(detail.Rotation) *
+                Matrix4.CreateTranslation(detail.Position) *
+                cam.CreateViewMatrix() *
+                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+            if (loc >= 0)
+            {
+                GL.UniformMatrix4(loc, false, ref worldViewProjection);
+            }
+
+            var model = this.GetModelFromName(detail.Model);
+            if (model != null)
+            {
+                model.Render(cam, time);
+            }
+        }
+
         private void RenderPlayer(Camera cam, Vector3 position, float rotation, int loc, double time)
         {
             Matrix4 worldViewProjection = 
@@ -263,6 +330,11 @@ namespace BlocksWorld
         public Network Network
         {
             get { return this.network; }
+        }
+
+        public PhraseTranslator Server
+        {
+            get { return this.sender; }
         }
 
         public World World

@@ -4,6 +4,7 @@ using Jitter.LinearMath;
 using System;
 using OpenTK;
 using Jitter.Collision;
+using System.Collections.Generic;
 
 namespace BlocksWorld
 {
@@ -16,14 +17,15 @@ namespace BlocksWorld
             public RigidBody Body { get; set; }
         }
 
-        private SparseArray3D<Atom> blocks;
+        private SparseArray3D<Atom> blocks = new SparseArray3D<Atom>();
+        private List<DetailObject> details = new List<DetailObject>(); 
 
         public event EventHandler<BlockEventArgs> BlockChanged;
 
         public World() :
-            base(new Jitter.Collision.CollisionSystemPersistentSAP())
+            base(new CollisionSystemPersistentSAP())
         {
-            this.blocks = new SparseArray3D<Atom>();
+
         }
 
         protected void OnBlockChanged(Block block, int x, int y, int z)
@@ -99,5 +101,8 @@ namespace BlocksWorld
         public int UpperX { get { return this.blocks.GetUpperX(); } }
         public int UpperY { get { return this.blocks.GetUpperY(); } }
         public int UpperZ { get { return this.blocks.GetUpperZ(); } }
+
+
+        public IReadOnlyList<DetailObject> Details { get { return this.details; } }
     }
 }

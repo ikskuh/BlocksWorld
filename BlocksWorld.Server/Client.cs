@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -6,13 +7,15 @@ using System.Text;
 
 namespace BlocksWorld
 {
-    internal partial class Client
+    internal partial class Client : IPhraseSender
     {
         private readonly int id;
         private Server server;
         private Network network;
         private Dictionary<NetworkPhrase, Action> dispatcher = new Dictionary<NetworkPhrase, Action>();
         private BasicReceiver receiver;
+
+        private PhraseTranslator client, others, broadcast;
 
         public Client(Server server, TcpClient tcp, int id)
         {
@@ -25,20 +28,20 @@ namespace BlocksWorld
 
             this.Network[NetworkPhrase.SetPlayer] = this.SetPlayer;
 
-            this.Network.SendWorld(this.server.World);
+            this.client = new PhraseTranslator(this.network);
+            this.broadcast = new PhraseTranslator(this.server);
+            this.others = new PhraseTranslator(this);
 
-            this.Network.SpawnPlayer(16.0f, 4.0f, 3.0f);
-        }
+            this.client.SendWorld(this.server.World);
 
-        private void SentToOthers(NetworkPhrase phrase, PhraseSender sender)
-        {
-            foreach(var client in this.server.Clients)
+            this.client.SpawnPlayer(new Vector3(16.0f, 4.0f, 3.0f));
+
+            foreach(var detail in this.server.World.Details)
             {
-                if (client == this) continue;
-                client.network.Send(phrase, sender);
+                this.client.UpdateDetail(detail);
             }
         }
-
+        
         private void SetPlayer(BinaryReader reader)
         {
             float x = reader.ReadSingle();
@@ -46,22 +49,15 @@ namespace BlocksWorld
             float z = reader.ReadSingle();
             float rot = reader.ReadSingle();
 
-            this.SentToOthers(NetworkPhrase.UpdateProxy, (s) =>
-            {
-                s.Write(this.id);
-                s.Write(x);
-                s.Write(y);
-                s.Write(z);
-                s.Write(rot);
-            });
+            this.others.UpdateProxy(this.id, new Vector3(x, y, z), rot); 
         }
 
         private void World_BlockChanged(object sender, BlockEventArgs e)
         {
             if(e.Block == null)
-                this.Network.RemoveBlock(e.X, e.Y, e.Z);
+                this.client.RemoveBlock(e.X, e.Y, e.Z);
             else
-                this.Network.SetBlock(e.X, e.Y, e.Z, e.Block);
+                this.client.SetBlock(e.X, e.Y, e.Z, e.Block);
         }
 
         internal void Update(double deltaTime)
@@ -71,13 +67,19 @@ namespace BlocksWorld
 
         private void Kill()
         {
-            this.SentToOthers(NetworkPhrase.DestroyProxy, (s) =>
-            {
-                s.Write(this.id);
-            });
+            this.others.DestroyProxy(this.id);
 
             this.IsAlive = false;
             this.Network.Disconnect();
+        }
+
+        void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)
+        {
+            foreach (var client in this.server.Clients)
+            {
+                if (client == this) continue;
+                client.network.Send(phrase, sender);
+            }
         }
 
         public bool IsAlive { get; private set; } = true;
