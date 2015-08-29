@@ -34,6 +34,10 @@ namespace BlocksWorld
         MeshModel playerModel;
 
         Dictionary<int, Proxy> proxies = new Dictionary<int, Proxy>();
+        // Dictionary<int, Entity>
+
+        int currentTool = 0;
+        List<Tuple<int, Tool>> tools = new List<Tuple<int, Tool>>();
 
         int networkUpdateCounter = 0;
 
@@ -90,9 +94,10 @@ namespace BlocksWorld
 
         void CreatePlayer(JVector spawn)
         {
+            this.tools.Add(new Tuple<int, Tool>(1, new BlockPlaceTool(this)));
+            this.tools.Add(new Tuple<int, Tool>(2, new SpawnTool(this)));
+
             this.player = new Player(this.world);
-            // this.player.Tool = new BlockPlaceTool(this);
-            this.player.Tool = new SpawnTool(this);
             this.player.Position = spawn;
 
             this.world.AddBody(this.player);
@@ -124,6 +129,12 @@ namespace BlocksWorld
             foreach (var proxy in this.proxies)
                 proxy.Value.UpdateFrame(input, time);
 
+            if (input.GetButtonDown(Key.Q) && (this.currentTool > 0))
+                this.currentTool -= 1;
+            if (input.GetButtonDown(Key.E) && (this.currentTool < (this.tools.Count -1)))
+                this.currentTool += 1;
+
+            this.player.Tool = this.tools[this.currentTool].Item2;
             if (this.player != null)
                 this.player.UpdateFrame(input, time);
 
@@ -152,8 +163,8 @@ namespace BlocksWorld
 
         public override void RenderFrame(double time)
         {
+            this.ui.Reset();
             this.debug.Reset();
-
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
@@ -221,6 +232,16 @@ namespace BlocksWorld
 
             this.debug.Render(cam, time);
 
+            {
+                for(int i = 0; i < this.tools.Count; i++)
+                {
+                    Vector2 pos = new Vector2(32 + 64 * i, 32);
+                    if (i == this.currentTool)
+                        this.ui.Draw(3, pos, new Vector2(64, 64), ImageAnchor.TopLeft);
+                    this.ui.Draw(this.tools[i].Item1, pos, new Vector2(64, 64), ImageAnchor.TopLeft);
+                }
+                this.ui.Draw(0, new Vector2(640, 360), new Vector2(64, 64), ImageAnchor.MiddleCenter);
+            }
             this.ui.Render(cam, time);
         }
 

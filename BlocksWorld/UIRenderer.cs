@@ -1,6 +1,7 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Collections.Generic;
 
 namespace BlocksWorld
 {
@@ -73,6 +74,45 @@ namespace BlocksWorld
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
+        private List<Quads> quads = new List<Quads>();
+
+        public void Reset()
+        {
+            this.quads.Clear();
+        }
+
+        public void Draw(int textureID, Vector2 position, Vector2 size, ImageAnchor anchor)
+        {
+            position.X /= this.VirtualScreenSize.X;
+            position.Y /= this.VirtualScreenSize.Y;
+            
+            size.X /= this.VirtualScreenSize.X;
+            size.Y /= this.VirtualScreenSize.Y;
+
+            // First/second byte encoding in anchor defines position
+            switch((int)anchor & 0xF0)
+            {
+                case 0x00: break;
+                case 0x10: position.X -= 0.5f * size.X; break;
+                case 0x20: position.X -= size.X; break;
+            }
+            switch ((int)anchor & 0x0F)
+            {
+                case 0x00: break;
+                case 0x01: position.Y -= 0.5f * size.Y; break;
+                case 0x02: position.Y -= size.Y; break;
+            }
+
+            position.Y = 1.0f - position.Y;
+
+            this.quads.Add(new Quads()
+            {
+                TextureID = textureID,
+                Position = position,
+                Size = size
+            });
+        }
+
         public void Render(Camera camera, double time)
         {
             if (this.vao == 0)
@@ -81,20 +121,25 @@ namespace BlocksWorld
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Disable(EnableCap.CullFace);
 
             GL.UseProgram(this.shader);
 
-            GL.Uniform2(this.locPosition, new Vector2(0.4f, 0.4f));
-            GL.Uniform2(this.locSize, new Vector2(0.2f, 0.2f));
             GL.Uniform1(this.locTextures, 0);
-            GL.Uniform1(this.locTextureID, 0.0f);
 
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(this.textures.Target, this.textures.ID);
 
             GL.BindVertexArray(this.vao);
             {
-                GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
+                foreach (var quad in this.quads)
+                {                    
+                    GL.Uniform2(this.locPosition, quad.Position);
+                    GL.Uniform2(this.locSize, quad.Size);
+                    GL.Uniform1(this.locTextureID, (float)quad.TextureID);
+
+                    GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
+                }
             }
             GL.BindVertexArray(0);
 
@@ -112,6 +157,15 @@ namespace BlocksWorld
             this.vao = 0;
             this.vertexBuffer = 0;
             this.shader = 0;
+        }
+
+        public Vector2 VirtualScreenSize { get; set; } = new Vector2(1280.0f, 720.0f);
+
+        private class Quads
+        {
+            public Vector2 Position { get; internal set; }
+            public Vector2 Size { get; internal set; }
+            public int TextureID { get; internal set; }
         }
     }
 }

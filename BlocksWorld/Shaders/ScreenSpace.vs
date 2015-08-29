@@ -10,5 +10,5 @@ out vec2 uv;
 void main()
 {
 	uv = vPosition;
-	gl_Position = vec4(2.0f * (uUpperLeft + vPosition * uSize) - 1.0f, 0.0f, 1.0f);
+	gl_Position = vec4(2.0f * (uUpperLeft + vPosition * uSize * vec2(1.0f,-1.0f)) - 1.0f, 0.0f, 1.0f);
 }

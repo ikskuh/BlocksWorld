@@ -79,6 +79,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="IGameInputDriver.cs" />
     <Compile Include="IInteractiveEnvironment.cs" />
+    <Compile Include="ImageAnchor.cs" />
     <Compile Include="InputDriver.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="MeshBlock.cs" />
