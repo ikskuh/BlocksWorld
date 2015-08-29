@@ -9,7 +9,7 @@ namespace BlocksWorld
 {
     public sealed class DebugRenderer : IRenderer, IDebugDrawer, IDisposable
     {
-        int debugShader;
+        Shader debugShader;
 
         int vao;
         int buffer;
@@ -50,18 +50,9 @@ namespace BlocksWorld
                 camera.CreateViewMatrix() *
                 camera.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
 
-            GL.UseProgram(this.debugShader);
-            int loc = GL.GetUniformLocation(this.debugShader, "uWorldViewProjection");
-            if (loc >= 0)
-            {
-                GL.UniformMatrix4(loc, false, ref worldViewProjection);
-            }
-
-            loc = GL.GetUniformLocation(this.debugShader, "uColor");
-            if(loc >= 0)
-            {
-                GL.Uniform3(loc, Vector3.UnitX);
-            }
+            this.debugShader.UseProgram();
+            GL.UniformMatrix4(this.debugShader["uWorldViewProjection"], false, ref worldViewProjection);
+            GL.Uniform3(this.debugShader["uColor"], Vector3.UnitX);
 
             GL.PointSize(5.0f);
             this.DrawBuffer(PrimitiveType.Points, this.points);
@@ -81,7 +72,7 @@ namespace BlocksWorld
         void DrawBuffer(PrimitiveType type, List<Vector3> vertices)
         {
             int vertexCount = vertices.Count;
-            if(vertexCount <= 0)
+            if (vertexCount <= 0)
             {
                 return;
             }
@@ -90,9 +81,9 @@ namespace BlocksWorld
             {
                 var data = vertices.ToArray();
                 GL.BufferData(
-                    BufferTarget.ArrayBuffer, 
+                    BufferTarget.ArrayBuffer,
                     new IntPtr(Vector3.SizeInBytes * data.Length),
-                    data, 
+                    data,
                     BufferUsageHint.StaticDraw);
             }
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -132,16 +123,16 @@ namespace BlocksWorld
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            if(this.vao != 0)
+            if (this.vao != 0)
                 GL.DeleteVertexArray(this.vao);
             if (this.buffer != 0)
                 GL.DeleteBuffer(this.buffer);
-            if (this.debugShader != 0)
-                GL.DeleteProgram(this.debugShader);
+
+            this.debugShader?.Dispose();
 
             this.vao = 0;
             this.buffer = 0;
-            this.debugShader = 0;
+            this.debugShader = null;
         }
     }
 }

@@ -1,13 +1,38 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace BlocksWorld
 {
-    internal class Shader
+    public sealed class Shader : IDisposable
     {
-        internal static int CompileFromResource(string vertexName, string fragmentName)
+        private readonly Dictionary<string, int> uniforms = new Dictionary<string, int>(); 
+
+        private Shader(int id)
+        {
+            this.ID = id;
+        }
+
+        public int ID { get; private set; }
+
+        public void UseProgram()
+        {
+            GL.UseProgram(this.ID);
+        }
+
+        public int this[string uniformName]
+        {
+            get
+            {
+                if (this.uniforms.ContainsKey(uniformName) == false)
+                    this.uniforms.Add(uniformName, GL.GetUniformLocation(this.ID, uniformName));
+                return this.uniforms[uniformName];
+            }
+        }
+
+        internal static Shader CompileFromResource(string vertexName, string fragmentName)
         {
             string vertexSource, fragmentSource;
             using (var s = new StreamReader(OpenResource(vertexName), Encoding.UTF8))
@@ -21,7 +46,7 @@ namespace BlocksWorld
             return Shader.CompileFromSource(vertexSource, fragmentSource);
         }
 
-        private static int CompileFromSource(string vertexSource, string fragmentSource)
+        private static Shader CompileFromSource(string vertexSource, string fragmentSource)
         {
             int status, vs, fs, prog;
 
@@ -68,12 +93,24 @@ namespace BlocksWorld
             GL.DeleteShader(vs);
             GL.DeleteShader(fs);
             */
-            return prog;
+            return new Shader(prog);
         }
 
         private static Stream OpenResource(string fragmentName)
         {
             return typeof(Shader).Assembly.GetManifestResourceStream(fragmentName);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            GL.DeleteProgram(this.ID);
+            this.ID = 0;
+        }
+
+        public static explicit operator int (Shader shader)
+        {
+            return shader.ID;
         }
     }
 }

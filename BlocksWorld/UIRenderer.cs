@@ -7,11 +7,9 @@ namespace BlocksWorld
 {
     internal class UIRenderer : IRenderer, IDisposable
     {
-        int shader;
+        Shader shader;
         int vao;
         int vertexBuffer;
-
-        int locPosition, locSize, locTextures;
 
         Vector2[] vertices = new[]
         {
@@ -24,7 +22,6 @@ namespace BlocksWorld
             new Vector2(1.0f, 1.0f),
         };
         private TextureArray textures;
-        private int locTextureID;
 
         ~UIRenderer()
         {
@@ -39,11 +36,6 @@ namespace BlocksWorld
 
             this.textures = TextureArray.LoadFromResource(
                 "BlocksWorld.Textures.UI.png");
-
-            this.locPosition = GL.GetUniformLocation(this.shader, "uUpperLeft");
-            this.locSize = GL.GetUniformLocation(this.shader, "uSize");
-            this.locTextureID = GL.GetUniformLocation(this.shader, "uTextureID");
-            this.locTextures = GL.GetUniformLocation(this.shader, "uTextures");
 
             this.vao = GL.GenVertexArray();
             this.vertexBuffer = GL.GenBuffer();
@@ -123,9 +115,9 @@ namespace BlocksWorld
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.Disable(EnableCap.CullFace);
 
-            GL.UseProgram(this.shader);
+            this.shader.UseProgram();
 
-            GL.Uniform1(this.locTextures, 0);
+            GL.Uniform1(this.shader["uTextures"], 0);
 
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(this.textures.Target, this.textures.ID);
@@ -134,9 +126,9 @@ namespace BlocksWorld
             {
                 foreach (var quad in this.quads)
                 {                    
-                    GL.Uniform2(this.locPosition, quad.Position);
-                    GL.Uniform2(this.locSize, quad.Size);
-                    GL.Uniform1(this.locTextureID, (float)quad.TextureID);
+                    GL.Uniform2(this.shader["uUpperLeft"], quad.Position);
+                    GL.Uniform2(this.shader["uSize"], quad.Size);
+                    GL.Uniform1(this.shader["uTextureID"], (float)quad.TextureID);
 
                     GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
                 }
@@ -152,13 +144,12 @@ namespace BlocksWorld
 
             GL.DeleteVertexArray(this.vao);
             GL.DeleteBuffer(this.vertexBuffer);
-            GL.DeleteProgram(this.shader);
 
+            this.shader?.Dispose();
             this.textures?.Dispose();
 
             this.vao = 0;
             this.vertexBuffer = 0;
-            this.shader = 0;
         }
 
         public Vector2 VirtualScreenSize { get; set; } = new Vector2(1280.0f, 720.0f);

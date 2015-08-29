@@ -15,7 +15,7 @@ namespace BlocksWorld
     {
         DebugRenderer debug;
 
-        int objectShader;
+        Shader objectShader;
         TextureArray textures;
         MeshModel model;
         StaticCamera camera;
@@ -39,10 +39,8 @@ namespace BlocksWorld
 
         protected override void Dispose(bool disposing)
         {
-            if(this.objectShader != 0)
-                GL.DeleteProgram(this.objectShader);
-            this.objectShader = 0;
-                this.model?.Dispose();
+            this.objectShader?.Dispose();
+            this.model?.Dispose();
             this.form?.Dispose();
             this.debug?.Dispose();
             this.textures?.Dispose();
@@ -304,19 +302,10 @@ namespace BlocksWorld
 
             // Draw world
             {
-                GL.UseProgram(this.objectShader);
-                int loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
-                if (loc >= 0)
-                {
-                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
-                }
-
-                loc = GL.GetUniformLocation(this.objectShader, "uTextures");
-                if (loc >= 0)
-                {
-                    GL.Uniform1(loc, 0);
-                }
-
+                this.objectShader.UseProgram();
+                GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
+                GL.Uniform1(this.objectShader["uTextures"], 0);
+                
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
 

@@ -22,7 +22,7 @@ namespace BlocksWorld
         UIRenderer ui;
         DebugRenderer debug;
 
-        int objectShader;
+        Shader objectShader;
 
         double totalTime = 0.0;
         private Player player;
@@ -66,7 +66,7 @@ namespace BlocksWorld
 
             this.network[NetworkPhrase.SetInteractions] = this.SetInteractions;
         }
-        
+
         private void SetInteractions(BinaryReader reader)
         {
             int id = reader.ReadInt32();
@@ -258,19 +258,9 @@ namespace BlocksWorld
 
             // Draw world
             {
-                GL.UseProgram(this.objectShader);
-
-                int loc = GL.GetUniformLocation(this.objectShader, "uTextures");
-                if (loc >= 0)
-                {
-                    GL.Uniform1(loc, 0);
-                }
-
-                loc = GL.GetUniformLocation(this.objectShader, "uWorldViewProjection");
-                if (loc >= 0)
-                {
-                    GL.UniformMatrix4(loc, false, ref worldViewProjection);
-                }
+                this.objectShader.UseProgram();
+                GL.Uniform1(this.objectShader["uTextures"], 0);
+                GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
@@ -281,14 +271,14 @@ namespace BlocksWorld
                 {
                     if (detail.Model == null)
                         continue;
-                    this.RenderDetail(cam, detail, loc, time);
+                    this.RenderDetail(cam, detail, time);
                 }
 
                 foreach (var player in this.proxies)
                 {
-                    RenderPlayer(cam, player.Value.CurrentPosition, player.Value.CurrentBodyRotation, loc, time);
+                    RenderPlayer(cam, player.Value.CurrentPosition, player.Value.CurrentBodyRotation, time);
                 }
-                this.RenderPlayer(cam, this.player.FeetPosition, this.player.BodyRotation, loc, time);
+                this.RenderPlayer(cam, this.player.FeetPosition, this.player.BodyRotation, time);
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
                 GL.UseProgram(0);
@@ -322,17 +312,15 @@ namespace BlocksWorld
             this.ui.Render(cam, time);
         }
 
-        private void RenderDetail(Camera cam, DetailObject detail, int loc, double time)
+        private void RenderDetail(Camera cam, DetailObject detail, double time)
         {
             Matrix4 worldViewProjection =
                 Matrix4.CreateRotationY(detail.Rotation) *
                 Matrix4.CreateTranslation(detail.Position) *
                 cam.CreateViewMatrix() *
                 cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-            if (loc >= 0)
-            {
-                GL.UniformMatrix4(loc, false, ref worldViewProjection);
-            }
+
+            GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
             var model = this.GetModelFromName(detail.Model);
             if (model != null)
@@ -341,31 +329,30 @@ namespace BlocksWorld
             }
         }
 
-        private void RenderPlayer(Camera cam, Vector3 position, float rotation, int loc, double time)
+        private void RenderPlayer(Camera cam, Vector3 position, float rotation, double time)
         {
             Matrix4 worldViewProjection =
                 Matrix4.CreateRotationY(rotation) *
                 Matrix4.CreateTranslation(position) *
                 cam.CreateViewMatrix() *
                 cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
-            if (loc >= 0)
-            {
-                GL.UniformMatrix4(loc, false, ref worldViewProjection);
-            }
 
+            GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
+            
             this.playerModel.Render(cam, time);
         }
 
         protected override void Dispose(bool disposing)
         {
-            this.network.Dispose();
-            this.playerModel.Dispose();
-            this.ui.Dispose();
-            this.debug.Dispose();
-            this.renderer.Dispose();
+            this.objectShader?.Dispose();
+            this.network?.Dispose();
+            this.playerModel?.Dispose();
+            this.ui?.Dispose();
+            this.debug?.Dispose();
+            this.renderer?.Dispose();
             foreach (var model in this.models.Values)
                 model.Dispose();
-            this.textures.Dispose();
+            this.textures?.Dispose();
             base.Dispose(disposing);
         }
 
