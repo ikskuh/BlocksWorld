@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace BlocksWorld
 {
-    public class DebugRenderer : IRenderer, IDebugDrawer
+    public sealed class DebugRenderer : IRenderer, IDebugDrawer, IDisposable
     {
         int debugShader;
 
@@ -17,6 +17,16 @@ namespace BlocksWorld
         List<Vector3> points = new List<Vector3>();
         List<Vector3> lines = new List<Vector3>();
         List<Vector3> triangles = new List<Vector3>();
+
+        public DebugRenderer()
+        {
+
+        }
+
+        ~DebugRenderer()
+        {
+            this.Dispose();
+        }
 
         public void DrawLine(JVector start, JVector end)
         {
@@ -117,6 +127,21 @@ namespace BlocksWorld
             }
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            if(this.vao != 0)
+                GL.DeleteVertexArray(this.vao);
+            if (this.buffer != 0)
+                GL.DeleteBuffer(this.buffer);
+            if (this.debugShader != 0)
+                GL.DeleteProgram(this.debugShader);
+
+            this.vao = 0;
+            this.buffer = 0;
+            this.debugShader = 0;
         }
     }
 }

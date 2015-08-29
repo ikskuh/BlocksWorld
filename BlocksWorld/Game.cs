@@ -3,6 +3,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using System;
+using System.Collections.Generic;
 
 namespace BlocksWorld
 {
@@ -37,6 +38,8 @@ namespace BlocksWorld
             this.SetScene(this.worldScene);
         }
 
+        private HashSet<Scene> usedScenes = new HashSet<Scene>();
+
         private void SetScene(Scene scene)
         {
             if (this.scene != null)
@@ -47,6 +50,11 @@ namespace BlocksWorld
                 if (this.scene.IsLoaded == false)
                     this.scene.Load();
                 this.scene.Enable();
+            }
+
+            if (scene != null)
+            {
+                this.usedScenes.Add(scene);
             }
         }
 
@@ -78,7 +86,9 @@ namespace BlocksWorld
 
         protected override void OnUnload(EventArgs e)
         {
-            base.OnUnload(e);
+            foreach (var scene in this.usedScenes)
+                scene.Dispose();
+            this.usedScenes.Clear();
         }
 
         private void DebugProc(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)

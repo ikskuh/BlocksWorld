@@ -154,6 +154,8 @@ namespace BlocksWorld
             GL.DeleteBuffer(this.vertexBuffer);
             GL.DeleteProgram(this.shader);
 
+            this.textures?.Dispose();
+
             this.vao = 0;
             this.vertexBuffer = 0;
             this.shader = 0;

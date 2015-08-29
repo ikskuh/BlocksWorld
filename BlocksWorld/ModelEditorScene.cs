@@ -37,6 +37,18 @@ namespace BlocksWorld
             InitializeComponents();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if(this.objectShader != 0)
+                GL.DeleteProgram(this.objectShader);
+            this.objectShader = 0;
+                this.model?.Dispose();
+            this.form?.Dispose();
+            this.debug?.Dispose();
+            this.textures?.Dispose();
+            base.Dispose(disposing);
+        }
+
         private void InitializeComponents()
         {
             this.form = new Form()

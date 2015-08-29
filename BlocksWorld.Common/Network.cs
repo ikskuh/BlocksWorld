@@ -10,7 +10,7 @@ namespace BlocksWorld
 {
     public delegate void PhraseHandler(BinaryReader reader);
 
-    public sealed partial class Network : IPhraseSender
+    public sealed partial class Network : IPhraseSender, IDisposable
     {
         private readonly TcpClient client;
         private readonly Dictionary<NetworkPhrase, PhraseHandler> dispatcher = new Dictionary<NetworkPhrase, PhraseHandler>();
@@ -18,7 +18,7 @@ namespace BlocksWorld
         private BinaryWriter writer;
 
         public event EventHandler<PhraseEventArgs> UnknownPhraseReceived;
-        
+
         public Network(TcpClient client)
         {
             this.client = client;
@@ -26,6 +26,11 @@ namespace BlocksWorld
             var stream = this.client.GetStream();
             this.reader = new BinaryReader(stream, Encoding.UTF8);
             this.writer = new BinaryWriter(stream, Encoding.UTF8);
+        }
+
+        ~Network()
+        {
+            this.Dispose();
         }
 
         public void Disconnect()
@@ -56,11 +61,18 @@ namespace BlocksWorld
 
         public void Send(NetworkPhrase phrase, PhraseSender sender)
         {
-            lock(this.writer)
+            lock (this.writer)
             {
-                this.writer.Write((int)phrase);
-                this.writer.Flush();
-                sender(this.writer);
+                try
+                {
+                    this.writer.Write((int)phrase);
+                    this.writer.Flush();
+                    sender(this.writer);
+                }
+                catch (IOException ex) when (ex.HResult == -2146232800) // Connection closed
+                {
+                    // just ignore the exception
+                }
             }
         }
 
@@ -68,6 +80,13 @@ namespace BlocksWorld
         {
             if (this.UnknownPhraseReceived != null)
                 this.UnknownPhraseReceived(this, new PhraseEventArgs(phrase, this.reader));
+        }
+
+        public void Dispose()
+        {
+            this.reader.Dispose();
+            this.writer.Dispose();
+            ((IDisposable)this.client).Dispose();
         }
 
         public PhraseHandler this[NetworkPhrase phrase]

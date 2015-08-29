@@ -9,13 +9,18 @@ using System.Threading.Tasks;
 
 namespace BlocksWorld
 {
-    public sealed class TextureArray
+    public sealed class TextureArray : IDisposable
     {
         private int id;
 
         private TextureArray(int id)
         {
             this.id = id;
+        }
+
+        ~TextureArray()
+        {
+            this.Dispose();
         }
 
         public static TextureArray LoadFromFile(string fileName)
@@ -74,6 +79,12 @@ namespace BlocksWorld
                     Count = count
                 };
             }
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            GL.DeleteTexture(this.id);
         }
 
         public int ID

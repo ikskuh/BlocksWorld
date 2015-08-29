@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace BlocksWorld
 {
-    public partial class WorldRenderer : IRenderer
+    public sealed partial class WorldRenderer : IRenderer, IDisposable
     {
         private readonly World world;
         private int vao;
@@ -20,6 +20,11 @@ namespace BlocksWorld
             this.world = world;
             this.world.BlockChanged += (s, e) => this.invalid = true;
         }
+
+        ~WorldRenderer()
+        {
+            this.Dispose();
+    }
 
         internal void Load()
         {
@@ -114,6 +119,13 @@ namespace BlocksWorld
             {
                 return world;
             }
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            GL.DeleteVertexArray(this.vao);
+            GL.DeleteBuffer(this.vertexBuffer);
         }
     }
 }

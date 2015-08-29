@@ -15,7 +15,7 @@ using System.Text;
 
 namespace BlocksWorld
 {
-    public class WorldScene : Scene, IInteractiveEnvironment
+    public sealed class WorldScene : Scene, IInteractiveEnvironment
     {
         World world;
         WorldRenderer renderer;
@@ -66,7 +66,7 @@ namespace BlocksWorld
 
             this.network[NetworkPhrase.SetInteractions] = this.SetInteractions;
         }
-
+        
         private void SetInteractions(BinaryReader reader)
         {
             int id = reader.ReadInt32();
@@ -354,6 +354,19 @@ namespace BlocksWorld
             }
 
             this.playerModel.Render(cam, time);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            this.network.Dispose();
+            this.playerModel.Dispose();
+            this.ui.Dispose();
+            this.debug.Dispose();
+            this.renderer.Dispose();
+            foreach (var model in this.models.Values)
+                model.Dispose();
+            this.textures.Dispose();
+            base.Dispose(disposing);
         }
 
         public Network Network
