@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Drawing;
 using System.IO;
+using System.Globalization;
 
 namespace BlocksWorld
 {
@@ -66,7 +67,7 @@ namespace BlocksWorld
 
         private void SaveFileAs(object sender, EventArgs e)
         {
-            if(this.model == null)
+            if (this.model == null)
             {
                 MessageBox.Show(
                     this.form,
@@ -94,7 +95,7 @@ namespace BlocksWorld
             this.modelData.Controls.Clear();
 
             var meshes = model.Meshes.ToArray();
-            for(int i = 0; i < meshes.Length; i++)
+            for (int i = 0; i < meshes.Length; i++)
             {
                 var mesh = meshes[i];
                 GroupBox box = new GroupBox()
@@ -108,7 +109,7 @@ namespace BlocksWorld
                     Dock = DockStyle.Fill
                 };
                 table.ColumnCount = 2;
-                table.RowCount = 2;
+                table.RowCount = 3;
                 table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 0.5f));
                 table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 0.5f));
 
@@ -125,7 +126,7 @@ namespace BlocksWorld
                     {
                         Dock = DockStyle.Fill,
                         Minimum = 0,
-                        Maximum = this.textures.Count,
+                        Maximum = this.textures.Count - 1,
                         Value = mesh.Texture,
                         Increment = 1,
                     };
@@ -143,6 +144,51 @@ namespace BlocksWorld
 
                     table.RowStyles.Add(new RowStyle(SizeType.Absolute, editor.Height + 2));
                 }
+                // Scale tool
+                {
+                    var label = new Label()
+                    {
+                        Dock = DockStyle.Fill,
+                        AutoSize = false,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                        Text = "Texture:"
+                    };
+                    var editor = new TextBox()
+                    {
+                        Dock = DockStyle.Fill,
+                        Text = "1.0"
+                    };
+                    var button = new Button()
+                    {
+                        Text = "Scale",
+                        Dock = DockStyle.Right
+                    };
+                    var panel = new Panel()
+                    {
+                        Dock = DockStyle.Fill
+                    };
+
+                    button.Click += (s, e) =>
+                    {
+                        float scale = float.Parse(editor.Text, CultureInfo.InvariantCulture);
+                        for (int j = 0; j < mesh.Vertices.Length; j++)
+                        {
+                            mesh.Vertices[j].position *= scale;
+                        }
+                        mesh.Update();
+                    };
+
+                    panel.Controls.Add(editor);
+                    panel.Controls.Add(button);
+
+                    table.Controls.Add(label);
+                    table.Controls.Add(panel);
+
+                    table.SetCellPosition(label, new TableLayoutPanelCellPosition(0, 1));
+                    table.SetCellPosition(panel, new TableLayoutPanelCellPosition(1, 1));
+
+                    table.RowStyles.Add(new RowStyle(SizeType.Absolute, editor.Height + 2));
+                }
 
                 box.Controls.Add(table);
                 this.modelData.Controls.Add(box);
@@ -156,10 +202,11 @@ namespace BlocksWorld
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
             MeshModel model;
-            try {
+            try
+            {
                 model = MeshModel.LoadFromFile(ofd.FileName);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(
                     this.form,
@@ -169,7 +216,7 @@ namespace BlocksWorld
                     MessageBoxIcon.Error);
                 return;
             }
-            
+
             if (this.model != null)
                 this.model.Dispose();
             this.model = model;
@@ -261,7 +308,7 @@ namespace BlocksWorld
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
 
-                if(this.model != null)
+                if (this.model != null)
                     this.model.Render(this.camera, time);
 
                 GL.BindTexture(TextureTarget.Texture2DArray, 0);
@@ -275,19 +322,19 @@ namespace BlocksWorld
             this.debug.DrawLine(
                 new JVector(0, 0, -50),
                 new JVector(0, 0, 50));
-            
+
             // Ground Box Plane
             this.debug.DrawLine(
                 new JVector(-0.5f, 0, -0.5f),
-                new JVector( 0.5f, 0, -0.5f));
+                new JVector(0.5f, 0, -0.5f));
             this.debug.DrawLine(
-                new JVector( 0.5f, 0, -0.5f),
-                new JVector( 0.5f, 0,  0.5f));
+                new JVector(0.5f, 0, -0.5f),
+                new JVector(0.5f, 0, 0.5f));
             this.debug.DrawLine(
-                new JVector( 0.5f, 0,  0.5f),
-                new JVector(-0.5f, 0,  0.5f));
+                new JVector(0.5f, 0, 0.5f),
+                new JVector(-0.5f, 0, 0.5f));
             this.debug.DrawLine(
-                new JVector(-0.5f, 0,  0.5f),
+                new JVector(-0.5f, 0, 0.5f),
                 new JVector(-0.5f, 0, -0.5f));
 
             this.debug.Render(this.camera, time);

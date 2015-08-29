@@ -34,8 +34,7 @@ namespace BlocksWorld
         MeshModel playerModel;
 
         Dictionary<int, Proxy> proxies = new Dictionary<int, Proxy>();
-
-        Dictionary<int, DetailObject> details = new Dictionary<int, DetailObject>();
+        
         Dictionary<string, MeshModel> models = new Dictionary<string, MeshModel>();
 
         int currentTool = 0;
@@ -61,33 +60,44 @@ namespace BlocksWorld
             this.network[NetworkPhrase.UpdateProxy] = this.UpdateProxy;
             this.network[NetworkPhrase.DestroyProxy] = this.DestroyProxy;
 
+            this.network[NetworkPhrase.CreateDetail] = this.CreateDetail;
             this.network[NetworkPhrase.UpdateDetail] = this.UpdateDetail;
             this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
+        }
+
+        private void CreateDetail(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+
+            string model = reader.ReadString();
+            var pos = reader.ReadVector3();
+            float rot = reader.ReadSingle();
+
+            DetailObject obj = new DetailObject(id);
+            obj.Position = pos;
+            obj.Rotation = rot;
+            obj.Model = model;
+
+            this.world.RegisterDetail(obj);
         }
 
         private void DestroyDetail(BinaryReader reader)
         {
             int id = reader.ReadInt32();
-            this.details.Remove(id);
+            this.world.RemoveDetail(id);
         }
 
         private void UpdateDetail(BinaryReader reader)
         {
             int id = reader.ReadInt32();
-            
-            float x = reader.ReadSingle();
-            float y = reader.ReadSingle();
-            float z = reader.ReadSingle();
+            var pos = reader.ReadVector3();
             float rot = reader.ReadSingle();
-            string model = reader.ReadString();
 
-            DetailObject obj = this.details[id] ?? new DetailObject(id);
-
-            obj.Position = new Vector3(x, y, z);
+            DetailObject obj = this.world.GetDetail(id);
+            if (obj == null)
+                return;
+            obj.Position = pos;
             obj.Rotation = rot;
-            obj.Model = model;
-
-            this.details[id] = obj;
         }
 
         private MeshModel GetModelFromName(string model)
@@ -172,7 +182,7 @@ namespace BlocksWorld
 
             if (input.GetButtonDown(Key.Q) && (this.currentTool > 0))
                 this.currentTool -= 1;
-            if (input.GetButtonDown(Key.E) && (this.currentTool < (this.tools.Count -1)))
+            if (input.GetButtonDown(Key.E) && (this.currentTool < (this.tools.Count - 1)))
                 this.currentTool += 1;
 
             this.player.Tool = this.tools[this.currentTool].Item2;
@@ -190,14 +200,7 @@ namespace BlocksWorld
             this.networkUpdateCounter++;
             if (this.networkUpdateCounter > 5)
             {
-                this.network.Send(NetworkPhrase.SetPlayer, (s) =>
-                {
-                    var pos = this.player.FeetPosition;
-                    s.Write(pos.X);
-                    s.Write(pos.Y);
-                    s.Write(pos.Z);
-                    s.Write(this.player.BodyRotation);
-                });
+                this.sender.SetPlayer(this.player.FeetPosition, this.player.BodyRotation);
                 this.networkUpdateCounter = 0;
             }
         }
@@ -230,7 +233,7 @@ namespace BlocksWorld
             // Draw world
             {
                 GL.UseProgram(this.objectShader);
-                
+
                 int loc = GL.GetUniformLocation(this.objectShader, "uTextures");
                 if (loc >= 0)
                 {
@@ -248,7 +251,7 @@ namespace BlocksWorld
 
                 this.renderer.Render(cam, time);
 
-                foreach(var detail in this.details.Values)
+                foreach (var detail in this.world.Details)
                 {
                     if (detail.Model == null)
                         continue;
@@ -281,7 +284,7 @@ namespace BlocksWorld
             this.debug.Render(cam, time);
 
             {
-                for(int i = 0; i < this.tools.Count; i++)
+                for (int i = 0; i < this.tools.Count; i++)
                 {
                     Vector2 pos = new Vector2(32 + 64 * i, 32);
                     if (i == this.currentTool)
@@ -314,7 +317,7 @@ namespace BlocksWorld
 
         private void RenderPlayer(Camera cam, Vector3 position, float rotation, int loc, double time)
         {
-            Matrix4 worldViewProjection = 
+            Matrix4 worldViewProjection =
                 Matrix4.CreateRotationY(rotation) *
                 Matrix4.CreateTranslation(position) *
                 cam.CreateViewMatrix() *

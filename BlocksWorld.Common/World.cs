@@ -5,6 +5,7 @@ using System;
 using OpenTK;
 using Jitter.Collision;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlocksWorld
 {
@@ -17,10 +18,16 @@ namespace BlocksWorld
             public RigidBody Body { get; set; }
         }
 
+        private int detailCounter = 0;
         private SparseArray3D<Atom> blocks = new SparseArray3D<Atom>();
-        private List<DetailObject> details = new List<DetailObject>(); 
+        private List<DetailObject> details = new List<DetailObject>();
+        private Dictionary<int, RigidBody> detailBodies = new Dictionary<int, RigidBody>();
 
         public event EventHandler<BlockEventArgs> BlockChanged;
+
+        public event EventHandler<DetailEventArgs> DetailCreated;
+        public event EventHandler<DetailEventArgs> DetailChanged;
+        public event EventHandler<DetailEventArgs> DetailRemoved;
 
         public World() :
             base(new CollisionSystemPersistentSAP())
@@ -32,6 +39,83 @@ namespace BlocksWorld
         {
             if (this.BlockChanged != null)
                 this.BlockChanged(this, new BlockEventArgs(block, x, y, z));
+        }
+
+        public void RegisterDetail(DetailObject obj)
+        {
+            if (this.GetDetail(obj.ID) != null)
+                throw new InvalidOperationException();
+
+            obj.Changed += Obj_Changed;
+            this.details.Add(obj);
+
+            var body = new RigidBody(new BoxShape(1.5f, 0.2f, 1.0f));
+            body.Position = obj.Position.Jitter();
+            body.Orientation = JMatrix.CreateRotationY(obj.Rotation);
+            body.IsStatic = true;
+            body.Tag = obj;
+            this.detailBodies.Add(obj.ID, body);
+
+            this.AddBody(body);
+
+            this.OnDetailCreated(obj);
+        }
+
+        private void Obj_Changed(object sender, EventArgs e)
+        {
+            this.OnDetailChanged(sender as DetailObject);
+        }
+
+        public DetailObject CreateDetail(string model, Vector3 position)
+        {
+            var obj = new DetailObject(++this.detailCounter)
+            {
+                Model = model,
+                Position = position
+            };
+
+            this.RegisterDetail(obj);
+
+            return obj;
+        }
+
+        public void RemoveDetail(int id)
+        {
+            var detail = this.GetDetail(id);
+            if (detail == null)
+                return;
+            detail.Changed -= Obj_Changed;
+            if (this.detailBodies.ContainsKey(id))
+            {
+                this.RemoveBody(this.detailBodies[id]);
+            }
+            this.detailBodies.Remove(id);
+            this.details.RemoveAll(d => d.ID == id);
+
+            this.OnDetailRemoved(detail);
+        }
+
+        private void OnDetailCreated(DetailObject obj)
+        {
+            if (this.DetailCreated != null)
+                this.DetailCreated(this, new DetailEventArgs(obj));
+        }
+
+        private void OnDetailChanged(DetailObject obj)
+        {
+            if (this.DetailChanged != null)
+                this.DetailChanged(this, new DetailEventArgs(obj));
+        }
+
+        private void OnDetailRemoved(DetailObject obj)
+        {
+            if (this.DetailRemoved != null)
+                this.DetailRemoved(this, new DetailEventArgs(obj));
+        }
+
+        public DetailObject GetDetail(int id)
+        {
+            return this.details.FirstOrDefault(d => d.ID == id);
         }
 
         public Block this[int x, int y, int z]

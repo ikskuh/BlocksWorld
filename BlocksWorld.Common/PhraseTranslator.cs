@@ -55,6 +55,34 @@ namespace BlocksWorld
                 });
         }
 
+        public void DestroyDetail(DetailObject detail)
+        {
+            this.sender.Send(NetworkPhrase.DestroyDetail, (s) =>
+            {
+                s.Write(detail.ID);
+            });
+        }
+
+        public void CreateDetail(DetailObject detail)
+        {
+            this.sender.Send(NetworkPhrase.CreateDetail, (s) =>
+            {
+                s.Write(detail.ID);
+                s.Write(detail.Model);
+                s.Write(detail.Position);
+                s.Write(detail.Rotation);
+            });
+        }
+
+        public void CreateNewDetail(string model, Vector3 pos)
+        {
+            this.sender.Send(NetworkPhrase.CreateNewDetail, (s) =>
+            {
+                s.Write(model);
+                s.Write(pos);
+            });
+        }
+
         public void UpdateDetail(DetailObject detail)
         {
             this.sender.Send(NetworkPhrase.UpdateDetail, (s) =>
@@ -62,7 +90,6 @@ namespace BlocksWorld
                 s.Write(detail.ID);
                 s.Write(detail.Position);
                 s.Write(detail.Rotation);
-                s.Write(detail.Model);
             });
         }
 
@@ -81,6 +108,15 @@ namespace BlocksWorld
             this.sender.Send(NetworkPhrase.DestroyProxy, (s) =>
             {
                 s.Write(id);
+            });
+        }
+
+        public void SetPlayer(Vector3 feetPosition, float bodyRotation)
+        {
+            this.sender.Send(NetworkPhrase.SetPlayer, (s) =>
+            {
+                s.Write(feetPosition);
+                s.Write(bodyRotation);
             });
         }
     }

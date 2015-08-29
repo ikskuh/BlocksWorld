@@ -17,7 +17,20 @@ namespace BlocksWorld
 
         public override void PrimaryUse(Vector3 origin, Vector3 direction)
         {
+            var focus = this.World.Trace(origin.Jitter(), direction.Jitter(), TraceOptions.IgnoreDynamic);
+            if (focus == null)
+                return;
 
+            this.Server.CreateNewDetail("palette", focus.Position.TK());
+        }
+
+        public override void SecondaryUse(Vector3 origin, Vector3 direction)
+        {
+            var focus = this.World.Trace(origin.Jitter(), direction.Jitter(), TraceOptions.IgnoreDynamic);
+            var detail = focus?.Body?.Tag as DetailObject;
+            if (detail == null)
+                return;
+            this.Server.DestroyDetail(detail);
         }
     }
 }

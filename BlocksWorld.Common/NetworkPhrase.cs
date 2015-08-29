@@ -15,6 +15,7 @@ namespace BlocksWorld
          ****************************/
         SetBlock,
         RemoveBlock,
+
         UpdateDetail,
         DestroyDetail,
 
@@ -26,10 +27,13 @@ namespace BlocksWorld
 
         LoadWorld,
         SpawnPlayer,
-        
+
+        CreateDetail,
+
         /****************************
          * To Server Only 
          ****************************/
         SetPlayer,
+        CreateNewDetail,
     }
 }

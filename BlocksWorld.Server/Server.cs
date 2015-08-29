@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 using System.IO;
+using OpenTK;
 
 namespace BlocksWorld
 {
@@ -29,6 +30,12 @@ namespace BlocksWorld
         {
             this.world = new World();
 
+            var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
+            obj.Rotation = (float)(0.32f * Math.PI);
+
+            obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
+            obj.Rotation = (float)(0.1f * Math.PI);
+
             LoadWorld();
 
             this.server = new TcpListener(IPAddress.Any, 4523);
@@ -40,6 +47,9 @@ namespace BlocksWorld
             {
                 double deltaTime = timer.Elapsed.TotalSeconds;
                 timer.Restart();
+
+                obj.Rotation += (float)deltaTime;
+
                 lock (this.clients)
                 {
                     foreach (var client in this.clients)

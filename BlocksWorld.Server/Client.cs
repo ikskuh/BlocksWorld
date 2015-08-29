@@ -21,12 +21,13 @@ namespace BlocksWorld
         {
             this.id = id;
             this.server = server;
-            this.server.World.BlockChanged += World_BlockChanged;
 
             this.network = new Network(tcp);
             this.receiver = new BasicReceiver(this.Network, this.server.World);
 
-            this.Network[NetworkPhrase.SetPlayer] = this.SetPlayer;
+            this.network[NetworkPhrase.SetPlayer] = this.SetPlayer;
+            this.network[NetworkPhrase.CreateNewDetail] = this.CreateNewDetail;
+            this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
 
             this.client = new PhraseTranslator(this.network);
             this.broadcast = new PhraseTranslator(this.server);
@@ -38,10 +39,38 @@ namespace BlocksWorld
 
             foreach(var detail in this.server.World.Details)
             {
-                this.client.UpdateDetail(detail);
+                this.client.CreateDetail(detail);
             }
+            
+            this.server.World.BlockChanged += World_BlockChanged;
+            this.server.World.DetailCreated += (s, e) =>
+            {
+                this.client.CreateDetail(e.Detail);
+            };
+            this.server.World.DetailChanged += (s, e) =>
+            {
+                this.client.UpdateDetail(e.Detail);
+            };
+            this.server.World.DetailRemoved += (s, e) =>
+            {
+                this.client.DestroyDetail(e.Detail);
+            };
         }
-        
+
+        private void DestroyDetail(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            this.server.World.RemoveDetail(id);
+        }
+
+        private void CreateNewDetail(BinaryReader reader)
+        {
+            string model = reader.ReadString();
+            var pos = reader.ReadVector3();
+            
+            var obj = this.server.World.CreateDetail(model, pos);
+        }
+
         private void SetPlayer(BinaryReader reader)
         {
             float x = reader.ReadSingle();

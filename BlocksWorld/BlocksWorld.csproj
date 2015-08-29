@@ -79,6 +79,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="ImageAnchor.cs" />
     <Compile Include="InputDriver.cs" />
+    <Compile Include="Mesh.cs" />
     <Compile Include="MeshBlock.cs" />
     <Compile Include="MeshModel.cs" />
     <Compile Include="MeshModel.IO.cs" />
@@ -99,6 +100,18 @@
     <Compile Include="WorldScene.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Resources\palette.bwm">
+      <Link>Models\palette.bwm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Resources\table_a.bwm">
+      <Link>Models\table_a.bwm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Resources\table_b.bwm">
+      <Link>Models\table_b.bwm</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
     <EmbeddedResource Include="Models\Player.bwm" />
     <None Include="packages.config" />

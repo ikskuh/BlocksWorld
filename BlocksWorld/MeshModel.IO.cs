@@ -33,7 +33,7 @@ namespace BlocksWorld
                 var scene = importer.ImportFileFromStream(
                     stream,
                     PostProcessSteps.Triangulate |
-                    PostProcessSteps.PreTransformVertices |
+                    // PostProcessSteps.PreTransformVertices |
                     PostProcessSteps.GenerateUVCoords |
                     PostProcessSteps.GenerateNormals,
                     formatHint);
@@ -55,7 +55,7 @@ namespace BlocksWorld
                         vertices[v].position = src[v].TK();
                         vertices[v].color = Vector3.One;
                         if (normals != null)
-                            vertices[v].normal = -normals[v].TK();
+                            vertices[v].normal = normals[v].TK();
                         if (uvs != null)
                             vertices[v].uv = uvs[v].TK();
                         else
@@ -165,7 +165,7 @@ namespace BlocksWorld
 
             for (int i = 0; i < this.vertexCount; i++)
             {
-                var vertex = this.vertices[i];
+                var vertex = this.Vertices[i];
 
                 writer.Write(vertex.position);
                 writer.Write(vertex.normal);
