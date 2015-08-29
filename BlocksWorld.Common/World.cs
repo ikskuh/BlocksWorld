@@ -29,6 +29,8 @@ namespace BlocksWorld
         public event EventHandler<DetailEventArgs> DetailChanged;
         public event EventHandler<DetailEventArgs> DetailRemoved;
 
+        public event EventHandler<DetailInteractionEventArgs> DetailInterationTriggered;
+
         public World() :
             base(new CollisionSystemPersistentSAP())
         {

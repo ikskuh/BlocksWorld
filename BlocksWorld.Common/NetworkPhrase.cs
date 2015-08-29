@@ -30,10 +30,13 @@ namespace BlocksWorld
 
         CreateDetail,
 
+        SetInteractions,
+
         /****************************
          * To Server Only 
          ****************************/
         SetPlayer,
         CreateNewDetail,
+        TriggerInteraction,
     }
 }

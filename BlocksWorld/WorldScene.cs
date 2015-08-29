@@ -34,7 +34,7 @@ namespace BlocksWorld
         MeshModel playerModel;
 
         Dictionary<int, Proxy> proxies = new Dictionary<int, Proxy>();
-        
+
         Dictionary<string, MeshModel> models = new Dictionary<string, MeshModel>();
 
         int currentTool = 0;
@@ -46,7 +46,7 @@ namespace BlocksWorld
         public WorldScene()
         {
             this.world = new World();
-
+            this.world.DetailInterationTriggered += World_DetailInterationTriggered;
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
             this.ui = new UIRenderer();
@@ -63,6 +63,31 @@ namespace BlocksWorld
             this.network[NetworkPhrase.CreateDetail] = this.CreateDetail;
             this.network[NetworkPhrase.UpdateDetail] = this.UpdateDetail;
             this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
+
+            this.network[NetworkPhrase.SetInteractions] = this.SetInteractions;
+        }
+
+        private void SetInteractions(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            int count = reader.ReadInt32();
+            List<string> strings = new List<string>();
+            for (int i = 0; i < count; i++)
+            {
+                strings.Add(reader.ReadString());
+            }
+            var detail = this.world.GetDetail(id);
+            if (detail == null)
+                return;
+
+            detail.Interactions.Clear();
+            foreach (var i in strings)
+                detail.Interactions.Add(i);
+        }
+
+        private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
+        {
+            this.sender.TriggerInteraction(e.Detail, e.Interaction);
         }
 
         private void CreateDetail(BinaryReader reader)
@@ -185,10 +210,11 @@ namespace BlocksWorld
             if (input.GetButtonDown(Key.E) && (this.currentTool < (this.tools.Count - 1)))
                 this.currentTool += 1;
 
-            this.player.Tool = this.tools[this.currentTool].Item2;
             if (this.player != null)
+            {
+                this.player.Tool = this.tools[this.currentTool].Item2;
                 this.player.UpdateFrame(input, time);
-
+            }
             lock (typeof(World))
             {
                 this.world.Step((float)time, true);

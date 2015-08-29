@@ -29,9 +29,11 @@ namespace BlocksWorld
         void Run()
         {
             this.world = new World();
+            this.world.DetailInterationTriggered += World_DetailInterationTriggered;
 
             var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
             obj.Rotation = (float)(0.32f * Math.PI);
+            obj.Interactions.Add("Knock");
 
             obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
             obj.Rotation = (float)(0.1f * Math.PI);
@@ -60,6 +62,11 @@ namespace BlocksWorld
                 }
                 Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
             }
+        }
+
+        private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
+        {
+            Console.WriteLine("Interaction '{0}' at object {1}", e.Detail.ID, e.Interaction);
         }
 
         private void LoadWorld()

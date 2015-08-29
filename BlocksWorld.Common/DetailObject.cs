@@ -1,18 +1,48 @@
 ﻿using OpenTK;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace BlocksWorld
 {
     public class DetailObject
     {
         public event EventHandler Changed;
+        public event EventHandler InteractionsChanged;
+        public event EventHandler<DetailInteractionEventArgs> InterationTriggered;
 
         private Vector3 position;
         private float rotation;
+        private ObservableCollection<string> interactions = new ObservableCollection<string>();
 
         public DetailObject(int id)
         {
             this.ID = id;
+            this.interactions.CollectionChanged += (s, e) =>
+            {
+                this.OnInteractonsChanged();
+            };
+        }
+
+        private void OnInteractonsChanged()
+        {
+            if (this.InteractionsChanged != null)
+                this.InteractionsChanged(this, EventArgs.Empty);
+        }
+
+        public void Interact(string interaction)
+        {
+            if (interaction == null)
+                return; // No interaction means nothing will happen anyways
+            if (this.Interactions.Contains(interaction) == false)
+                throw new ArgumentException(interaction + " does not exist.", "interaction");
+            this.OnInteractionTriggered(interaction);
+        }
+
+        private void OnInteractionTriggered(string interaction)
+        {
+            if (this.InterationTriggered != null)
+                this.InterationTriggered(this, new DetailInteractionEventArgs(this, interaction));
         }
 
         public int ID { get; private set; }
@@ -53,6 +83,14 @@ namespace BlocksWorld
                 position = value;
                 if (changed)
                     this.OnChanged();
+            }
+        }
+
+        public ICollection<string> Interactions
+        {
+            get
+            {
+                return this.interactions;
             }
         }
     }

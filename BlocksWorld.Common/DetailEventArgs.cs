@@ -1,6 +1,8 @@
-﻿namespace BlocksWorld
+﻿using System;
+
+namespace BlocksWorld
 {
-    public class DetailEventArgs
+    public class DetailEventArgs : EventArgs
     {
         public DetailEventArgs(DetailObject obj)
         {

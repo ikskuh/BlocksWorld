@@ -74,6 +74,17 @@ namespace BlocksWorld
             });
         }
 
+        public void SetInteractions(DetailObject detail)
+        {
+            this.sender.Send(NetworkPhrase.SetInteractions, (s) =>
+            {
+                s.Write(detail.ID);
+                s.Write(detail.Interactions.Count);
+                foreach (var interaction in detail.Interactions)
+                    s.Write(interaction);
+            });
+        }
+
         public void CreateNewDetail(string model, Vector3 pos)
         {
             this.sender.Send(NetworkPhrase.CreateNewDetail, (s) =>
@@ -90,6 +101,15 @@ namespace BlocksWorld
                 s.Write(detail.ID);
                 s.Write(detail.Position);
                 s.Write(detail.Rotation);
+            });
+        }
+
+        public void TriggerInteraction(DetailObject detail, string interaction)
+        {
+            this.sender.Send(NetworkPhrase.TriggerInteraction, (s) =>
+            {
+                s.Write(detail.ID);
+                s.Write(interaction);
             });
         }
 

@@ -28,6 +28,7 @@ namespace BlocksWorld
             this.network[NetworkPhrase.SetPlayer] = this.SetPlayer;
             this.network[NetworkPhrase.CreateNewDetail] = this.CreateNewDetail;
             this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
+            this.network[NetworkPhrase.TriggerInteraction] = this.TriggerInteraction;
 
             this.client = new PhraseTranslator(this.network);
             this.broadcast = new PhraseTranslator(this.server);
@@ -37,15 +38,15 @@ namespace BlocksWorld
 
             this.client.SpawnPlayer(new Vector3(16.0f, 4.0f, 3.0f));
 
-            foreach(var detail in this.server.World.Details)
+            foreach (var detail in this.server.World.Details)
             {
-                this.client.CreateDetail(detail);
+                this.CreateDetail(detail);
             }
-            
+
             this.server.World.BlockChanged += World_BlockChanged;
             this.server.World.DetailCreated += (s, e) =>
             {
-                this.client.CreateDetail(e.Detail);
+                this.CreateDetail(e.Detail);
             };
             this.server.World.DetailChanged += (s, e) =>
             {
@@ -53,8 +54,39 @@ namespace BlocksWorld
             };
             this.server.World.DetailRemoved += (s, e) =>
             {
+                e.Detail.InteractionsChanged -= Detail_InteractionsChanged;
                 this.client.DestroyDetail(e.Detail);
             };
+        }
+
+        private void CreateDetail(DetailObject detail)
+        {
+            this.client.CreateDetail(detail);
+            this.client.SetInteractions(detail);
+            detail.InteractionsChanged += Detail_InteractionsChanged;
+        }
+
+        private void Detail_InteractionsChanged(object sender, EventArgs e)
+        {
+            this.client.SetInteractions(sender as DetailObject);
+        }
+
+        private void TriggerInteraction(BinaryReader reader)
+        {
+            int id = reader.ReadInt32();
+            string interaction = reader.ReadString();
+
+            var i = this.server.World.GetDetail(id);
+            if (i == null)
+                return;
+            if (i.Interactions.Contains(interaction))
+            {
+                i.Interact(interaction);
+            }
+            else
+            {
+                Console.WriteLine("Interaction '{0}' not found.", interaction);
+            }
         }
 
         private void DestroyDetail(BinaryReader reader)
@@ -67,7 +99,7 @@ namespace BlocksWorld
         {
             string model = reader.ReadString();
             var pos = reader.ReadVector3();
-            
+
             var obj = this.server.World.CreateDetail(model, pos);
         }
 
@@ -78,12 +110,12 @@ namespace BlocksWorld
             float z = reader.ReadSingle();
             float rot = reader.ReadSingle();
 
-            this.others.UpdateProxy(this.id, new Vector3(x, y, z), rot); 
+            this.others.UpdateProxy(this.id, new Vector3(x, y, z), rot);
         }
 
         private void World_BlockChanged(object sender, BlockEventArgs e)
         {
-            if(e.Block == null)
+            if (e.Block == null)
                 this.client.RemoveBlock(e.X, e.Y, e.Z);
             else
                 this.client.SetBlock(e.X, e.Y, e.Z, e.Block);

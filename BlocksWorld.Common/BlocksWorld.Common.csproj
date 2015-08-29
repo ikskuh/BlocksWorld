@@ -62,6 +62,7 @@
     <Compile Include="BlockVertex.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="DetailEventArgs.cs" />
+    <Compile Include="DetailInteraction.cs" />
     <Compile Include="DetailObject.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IGameInputDriver.cs" />
