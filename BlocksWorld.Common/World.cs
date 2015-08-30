@@ -188,7 +188,11 @@ namespace BlocksWorld
 
             RaycastCallback callback = (b, n, f) =>
             {
-                return b.IsStatic;
+				if((b.IsStatic == true) && (options.HasFlag(TraceOptions.IgnoreStatic)))
+					return false;
+				if ((b.IsStatic == false) && (options.HasFlag(TraceOptions.IgnoreDynamic)))
+                    return false;
+				return true;
             };
             RigidBody body;
             JVector normal;

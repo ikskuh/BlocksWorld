@@ -86,7 +86,7 @@ namespace BlocksWorld
             }
         }
 
-        public ICollection<string> Interactions
+        public IList<string> Interactions
         {
             get
             {

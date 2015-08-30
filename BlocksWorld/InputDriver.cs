@@ -27,6 +27,7 @@ namespace BlocksWorld
             {
                 this.releasedMouse[e.Button] = true;
             };
+			this.Mouse.WheelChanged += Mouse_WheelChanged;
 
             this.Keyboard.KeyDown += (s, e) =>
             {
@@ -52,7 +53,13 @@ namespace BlocksWorld
             }
         }
 
-        private void Mouse_Move(object sender, MouseMoveEventArgs e)
+		private void Mouse_WheelChanged(object sender, MouseWheelEventArgs e)
+		{
+			this.MouseWheel = Math.Sign(e.Delta);
+			Console.WriteLine("{this.MouseWheel}");
+		}
+
+		private void Mouse_Move(object sender, MouseMoveEventArgs e)
         {
             this.MouseMovement += new Vector2(e.XDelta, e.YDelta);
         }
@@ -69,7 +76,9 @@ namespace BlocksWorld
 
         public Vector2 MouseMovement { get; private set; }
 
-        public bool GetButton(Key key)
+		public int MouseWheel { get; private set; }
+
+		public bool GetButton(Key key)
         {
             return this.Keyboard[key];
         }
@@ -93,6 +102,7 @@ namespace BlocksWorld
             this.SetFalse(this.releasedButtons);
 
             this.MouseMovement = Vector2.Zero;
+			this.MouseWheel = 0;
         }
 
         void SetFalse<T>(Dictionary<T, bool> dict)

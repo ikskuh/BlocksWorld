@@ -8,142 +8,146 @@ using System;
 
 namespace BlocksWorld
 {
-    public sealed class Player : RigidBody, IUpdateable
-    {
-        public static readonly PID movementPid = new PID()
-        {
-            Derivative = 0.0f,
-            Proportial = 3.5f,
-            Integral = 0.05f,
-            Scale = 1.0f,
-            MaxIntegral = 1.0f,
-        };
-        
-        PID.Controller moveXController = movementPid.CreateController();
-        PID.Controller moveZController = movementPid.CreateController();
+	public sealed class Player : RigidBody, IUpdateable
+	{
+		public static readonly PID movementPid = new PID()
+		{
+			Derivative = 0.0f,
+			Proportial = 3.5f,
+			Integral = 0.05f,
+			Scale = 1.0f,
+			MaxIntegral = 1.0f,
+		};
 
-        private readonly FirstPersonCamera camera;
-        private readonly World world;
+		PID.Controller moveXController = movementPid.CreateController();
+		PID.Controller moveZController = movementPid.CreateController();
 
-        public Player(World world) :
-            base(new CapsuleShape(0.9f, 0.4f))
-        {
-            this.world = world;
-            this.camera = new FirstPersonCamera(this)
-            {
-                EyeHeight = 0.6f
-            };
-            this.Material = new Material()
-            {
-                StaticFriction = 0.05f,
-                KineticFriction = 0.3f,
-                Restitution = 0.0f
-            };
-            this.AllowDeactivation = false;
-        }
+		private readonly FirstPersonCamera camera;
+		private readonly World world;
 
-        public override void PreStep(float timestep)
-        {
-            var current = this.LinearVelocity;
+		public Player(World world) :
+			base(new CapsuleShape(0.9f, 0.4f))
+		{
+			this.world = world;
+			this.camera = new FirstPersonCamera(this)
+			{
+				EyeHeight = 0.6f
+			};
+			this.Material = new Material()
+			{
+				StaticFriction = 0.05f,
+				KineticFriction = 0.3f,
+				Restitution = 0.0f
+			};
+			this.AllowDeactivation = false;
+		}
 
-            float deltaX = this.moveXController.GetControlValue(current.X, this.WalkSpeed.X, timestep);
-            float deltaZ = this.moveZController.GetControlValue(current.Z, this.WalkSpeed.Z, timestep);
+		public override void PreStep(float timestep)
+		{
+			var current = this.LinearVelocity;
 
-            this.AddForce(new JVector(deltaX, 0, deltaZ));
+			float deltaX = this.moveXController.GetControlValue(current.X, this.WalkSpeed.X, timestep);
+			float deltaZ = this.moveZController.GetControlValue(current.Z, this.WalkSpeed.Z, timestep);
 
-            base.PreStep(timestep);
-        }
+			this.AddForce(new JVector(deltaX, 0, deltaZ));
 
-        public override void PostStep(float timestep)
-        {
-            base.PostStep(timestep);
+			base.PreStep(timestep);
+		}
 
-            if (this.Position.Y < -10)
-            {
-                // Spawn reset
-                this.Position = new JVector(16, 4, 16);
-                this.LinearVelocity = JVector.Zero;
-                this.moveXController.Reset();
-                this.moveZController.Reset();
-            }
-        }
+		public override void PostStep(float timestep)
+		{
+			base.PostStep(timestep);
 
-        public void UpdateFrame(IGameInputDriver input, double time)
-        {
-            this.camera.Pan -= 0.5f * input.MouseMovement.X;
-            this.camera.Tilt -= 0.5f * input.MouseMovement.Y;
+			if (this.Position.Y < -10)
+			{
+				// Spawn reset
+				this.Position = new JVector(16, 4, 16);
+				this.LinearVelocity = JVector.Zero;
+				this.moveXController.Reset();
+				this.moveZController.Reset();
+			}
+		}
 
-            this.camera.Pan %= 360.0f;
-            this.camera.Tilt = MathHelper.Clamp(this.camera.Tilt, -80, 80);
+		public void UpdateFrame(IGameInputDriver input, double time)
+		{
+			this.camera.Pan -= 0.5f * input.MouseMovement.X;
+			this.camera.Tilt -= 0.5f * input.MouseMovement.Y;
 
-            Vector3 forward = Vector3.Zero;
+			this.camera.Pan %= 360.0f;
+			this.camera.Tilt = MathHelper.Clamp(this.camera.Tilt, -80, 80);
 
-            forward.X = 1.0f * (float)(Math.Sin(MathHelper.DegreesToRadians(this.camera.Pan)));
-            forward.Y = 0.0f;
-            forward.Z = 1.0f * (float)(Math.Cos(MathHelper.DegreesToRadians(this.camera.Pan)));
+			Vector3 forward = Vector3.Zero;
 
-            Vector3 right = Vector3.Cross(forward, Vector3.UnitY);
+			forward.X = 1.0f * (float)(Math.Sin(MathHelper.DegreesToRadians(this.camera.Pan)));
+			forward.Y = 0.0f;
+			forward.Z = 1.0f * (float)(Math.Cos(MathHelper.DegreesToRadians(this.camera.Pan)));
 
-            Vector3 move = Vector3.Zero;
-            if (input.GetButton(Key.W)) move += forward;
-            if (input.GetButton(Key.S)) move -= forward;
-            if (input.GetButton(Key.D)) move += right;
-            if (input.GetButton(Key.A)) move -= right;
+			Vector3 right = Vector3.Cross(forward, Vector3.UnitY);
 
-            this.WalkSpeed = 10.0f * move.Jitter();
+			Vector3 move = Vector3.Zero;
+			if (input.GetButton(Key.W)) move += forward;
+			if (input.GetButton(Key.S)) move -= forward;
+			if (input.GetButton(Key.D)) move += right;
+			if (input.GetButton(Key.A)) move -= right;
 
-            if (input.GetButtonDown(Key.Space))
-            {
-                RaycastCallback callback = (b, n, f) =>
-                {
-                    return b.IsStatic;
-                };
-                RigidBody body;
-                JVector normal;
-                float friction;
+			this.WalkSpeed = 10.0f * move.Jitter();
 
-                if (this.world.CollisionSystem.Raycast(
-                    this.Position,
-                    new JVector(0, -1, 0),
-                    callback,
-                    out body,
-                    out normal,
-                    out friction))
-                {
-                    if (friction < 0.9f)
-                    {
-                        this.AddForce(new JVector(0, 200, 0));
-                        Console.WriteLine("{0} {1} {2}", body, normal, friction);
-                    }
-                }
-            }
+			if (input.GetButtonDown(Key.Space))
+			{
+				RaycastCallback callback = (b, n, f) =>
+				{
+					return b.IsStatic;
+				};
+				RigidBody body;
+				JVector normal;
+				float friction;
 
-            var origin = this.camera.GetEye();
-            var direction = this.camera.GetForward();
+				if (this.world.CollisionSystem.Raycast(
+					this.Position,
+					new JVector(0, -1, 0),
+					callback,
+					out body,
+					out normal,
+					out friction))
+				{
+					if (friction < 0.9f)
+					{
+						this.AddForce(new JVector(0, 200, 0));
+						Console.WriteLine("{0} {1} {2}", body, normal, friction);
+					}
+				}
+			}
 
-            if(input.GetMouseDown(MouseButton.Left))
-            {
-                this.Tool?.PrimaryUse(origin, direction);
-            }
+			var origin = this.camera.GetEye();
+			var direction = this.camera.GetForward();
 
-            if (input.GetMouseDown(MouseButton.Right))
-            {
-                this.Tool?.SecondaryUse(origin, direction);
-            }
-        }
+			if (input.GetMouseDown(MouseButton.Left))
+			{
+				this.Tool?.PrimaryUse(origin, direction);
+			}
 
-        public JVector WalkSpeed { get; set; }
+			if (input.GetMouseDown(MouseButton.Right))
+			{
+				this.Tool?.SecondaryUse(origin, direction);
+			}
+		}
 
-        public Camera Camera { get { return this.camera; } }
+		public JVector WalkSpeed { get; set; }
 
-        public Tool Tool { get; set; }
+		public Camera Camera { get { return this.camera; } }
 
-        public float BodyRotation { get { return MathHelper.DegreesToRadians(this.camera.Pan); } }
+		public Tool Tool { get; set; }
 
-        public Vector3 FeetPosition { get
-            {
-                return this.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f);
-            }
-        }
-    }
+		public float BodyRotation { get { return MathHelper.DegreesToRadians(this.camera.Pan); } }
+
+		public Vector3 FeetPosition
+		{
+			get
+			{
+				return this.Position.TK() - new Vector3(0.0f, 0.9f, 0.0f);
+			}
+		}
+
+		public Vector3 Eye { get { return this.Position.TK() + new Vector3(0.0f, this.camera.EyeHeight, 0.0f); } }
+	}
 }

@@ -18,5 +18,6 @@ namespace BlocksWorld
         bool GetMouse(MouseButton btn);
 
         Vector2 MouseMovement { get; }
-    }
+		int MouseWheel { get; }
+	}
 }
