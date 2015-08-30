@@ -44,8 +44,9 @@ namespace BlocksWorld
         int networkUpdateCounter = 0;
         private PhraseTranslator sender;
         private int fps;
-        private Font font;
+        private Font largeFont;
         private Image uiTextures;
+        private Font smallFont;
 
         public WorldScene()
         {
@@ -58,7 +59,8 @@ namespace BlocksWorld
             {
                 this.uiTextures = Image.FromStream(stream);
             }
-
+            this.largeFont = new Font(FontFamily.GenericSansSerif, 16.0f);
+            this.smallFont = new Font(FontFamily.GenericSansSerif, 8.0f);
             this.ui = new UIRenderer(1280, 720);
             this.ui.Paint += Ui_Paint;
 
@@ -82,8 +84,13 @@ namespace BlocksWorld
         {
             var g = e.Graphics;
             g.Clear(Color.Transparent);
-            this.font = this.font ?? new Font(FontFamily.GenericSansSerif, 16.0f);
-            g.DrawString(string.Format("{0} FPS", this.fps), this.font, Brushes.White, new Point(32, 32));
+
+            foreach (var detail in this.world.Details)
+            {
+                this.PaintDetailUI(g, e.ClipRectangle.Size, detail);
+            }
+
+            g.DrawString(string.Format("{0} FPS", this.fps), this.largeFont, Brushes.White, new Point(32, 32));
 
             int c = this.tools.Count;
             var rectFull = new Rectangle(32, 32, 64 * c, 64);
@@ -102,11 +109,63 @@ namespace BlocksWorld
             }
 
             g.DrawRectangle(Pens.Black, rectFull);
-            
-            g.DrawImage(this.uiTextures, 
-                new Rectangle(640-32, 360-32, 64, 64), 
+
+            g.DrawImage(this.uiTextures,
+                new Rectangle(640 - 32, 360 - 32, 64, 64),
                 new Rectangle(0, 0, 256, 256),
                 GraphicsUnit.Pixel);
+        }
+
+        private void PaintDetailUI(Graphics g, Size screen, DetailObject detail)
+        {
+            if (this.player == null)
+                return;
+
+            if (detail.Interactions.Count == 0)
+                return;
+
+            var screenSpace = this.player.Camera.WorldToScreen(detail.Position, this.Aspect);
+            if ((screenSpace.Z < 0.0f) || (screenSpace.Z > 1.0f))
+                return;
+
+            // TODO: Check for visibility with trace
+
+            int x = (int)(screen.Width * (0.5f + 0.5f * screenSpace.X));
+            int y = (int)(screen.Height * (0.5f - 0.5f * screenSpace.Y));
+
+            var state = g.Transform;
+            g.TranslateTransform(x, y);
+
+            var font = this.smallFont;
+            RectangleF area = new RectangleF();
+            var interactions = detail.Interactions.ToArray();
+            for (int i = 0; i < interactions.Length; i++)
+            {
+                var size = g.MeasureString(interactions[i], font);
+
+                area.Width = Math.Max(size.Width, area.Width);
+                area.Height += size.Height + 1;
+            }
+
+            g.FillRectangle(Brushes.LightGray, area);
+            float pointer = 0.0f;
+            for (int i = 0; i < interactions.Length; i++)
+            {
+                var text = interactions[i];
+                var size = g.MeasureString(text, font);
+
+                if(i == 0)
+                {
+                    var sel = new RectangleF(0, pointer, area.Width, size.Height);
+                    g.FillRectangle(Brushes.LightGreen, sel);
+                }
+
+                g.DrawString(text, font, Brushes.Black, 0, pointer);
+                pointer += size.Height;
+            }
+            g.DrawRectangle(Pens.Black, area.X, area.Y, area.Width, area.Height);
+
+            g.Transform = state;
         }
 
         private void SetInteractions(BinaryReader reader)
@@ -258,6 +317,10 @@ namespace BlocksWorld
             {
                 this.player.Tool = this.tools[this.currentTool].Item2;
                 this.player.UpdateFrame(input, time);
+
+                // TODO: Determine nearest/most centered Detail
+                // TODO: Add detail interaction with Key.E
+                // TODO: Add detail interaction selection with moues wheel.
             }
             lock (typeof(World))
             {
@@ -297,7 +360,7 @@ namespace BlocksWorld
             Matrix4 worldViewProjection =
                 Matrix4.Identity *
                 cam.CreateViewMatrix() *
-                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+                cam.CreateProjectionMatrix(this.Aspect); 
 
             // Draw world
             {
@@ -351,7 +414,7 @@ namespace BlocksWorld
                 Matrix4.CreateRotationY(detail.Rotation) *
                 Matrix4.CreateTranslation(detail.Position) *
                 cam.CreateViewMatrix() *
-                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+                cam.CreateProjectionMatrix(this.Aspect); 
 
             GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
@@ -368,7 +431,7 @@ namespace BlocksWorld
                 Matrix4.CreateRotationY(rotation) *
                 Matrix4.CreateTranslation(position) *
                 cam.CreateViewMatrix() *
-                cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
+                cam.CreateProjectionMatrix(this.Aspect); 
 
             GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
@@ -403,5 +466,7 @@ namespace BlocksWorld
         {
             get { return this.world; }
         }
+
+        public float Aspect { get; } = 1280.0f / 720.0f; // HACK: Still hardcoded aspect, but better
     }
 }

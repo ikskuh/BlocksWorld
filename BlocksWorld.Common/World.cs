@@ -23,6 +23,13 @@ namespace BlocksWorld
         private List<DetailObject> details = new List<DetailObject>();
         private Dictionary<int, RigidBody> detailBodies = new Dictionary<int, RigidBody>();
 
+        private Material blockMaterial = new Material()
+        {
+            Restitution = 0.0f,
+            KineticFriction = 0.0f,
+            StaticFriction = 0.1f
+        };
+
         public event EventHandler<BlockEventArgs> BlockChanged;
 
         public event EventHandler<DetailEventArgs> DetailCreated;
@@ -52,14 +59,21 @@ namespace BlocksWorld
             obj.InterationTriggered += Obj_InterationTriggered;
             this.details.Add(obj);
 
-            var body = new RigidBody(new BoxShape(1.5f, 0.2f, 1.0f));
+            var body = new RigidBody(new BoxShape(1.0f, 0.2f, 1.5f));
             body.Position = obj.Position.Jitter();
             body.Orientation = JMatrix.CreateRotationY(obj.Rotation);
             body.IsStatic = true;
             body.Tag = obj;
+            body.Material = this.blockMaterial;
             this.detailBodies.Add(obj.ID, body);
 
             this.AddBody(body);
+
+            obj.Changed += (s, e) =>
+            {
+                body.Position = obj.Position.Jitter();
+                body.Orientation = JMatrix.CreateRotationY(obj.Rotation);
+            };
 
             this.OnDetailCreated(obj);
         }

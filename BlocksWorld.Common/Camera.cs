@@ -13,5 +13,14 @@ namespace BlocksWorld
         public float ZNear { get; set; } = 0.01f;
 
         public float ZFar { get; set; } = 10000.0f;
+
+        public Vector3 WorldToScreen(Vector3 position, float aspect)
+        {
+            Matrix4 mat =
+                this.CreateViewMatrix() *
+                this.CreateProjectionMatrix(aspect);
+
+            return Vector3.TransformPerspective(position, mat);
+        }
     }
 }

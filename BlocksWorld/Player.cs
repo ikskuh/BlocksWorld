@@ -12,11 +12,11 @@ namespace BlocksWorld
     {
         public static readonly PID movementPid = new PID()
         {
-            Derivative = 0.3f,
-            Proportial = 1.5f,
-            Integral = 0.15f,
+            Derivative = 0.0f,
+            Proportial = 3.5f,
+            Integral = 0.05f,
             Scale = 1.0f,
-            MaxIntegral = 20.0f,
+            MaxIntegral = 1.0f,
         };
         
         PID.Controller moveXController = movementPid.CreateController();
@@ -37,7 +37,7 @@ namespace BlocksWorld
             {
                 StaticFriction = 0.05f,
                 KineticFriction = 0.3f,
-                Restitution = 0.1f
+                Restitution = 0.0f
             };
             this.AllowDeactivation = false;
         }

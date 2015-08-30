@@ -37,6 +37,8 @@ namespace BlocksWorld
 
             obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
             obj.Rotation = (float)(0.1f * Math.PI);
+            obj.Interactions.Add("Knock");
+            obj.Interactions.Add("Flip Over");
 
             LoadWorld();
 
