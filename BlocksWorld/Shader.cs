@@ -27,7 +27,11 @@ namespace BlocksWorld
             get
             {
                 if (this.uniforms.ContainsKey(uniformName) == false)
+                {
                     this.uniforms.Add(uniformName, GL.GetUniformLocation(this.ID, uniformName));
+                    if (this.uniforms[uniformName] == -1)
+                        Console.WriteLine("Uniform '{0}' not found!", uniformName);
+                }
                 return this.uniforms[uniformName];
             }
         }

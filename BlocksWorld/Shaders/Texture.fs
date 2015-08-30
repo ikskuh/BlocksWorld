@@ -4,10 +4,9 @@ layout(location = 0) out vec4 fragment;
 
 in vec2 uv;
 
-uniform float uTextureID;
-uniform sampler2DArray uTextures;
+uniform sampler2D uTexture;
 
 void main()
 {
-	fragment = texture(uTextures, vec3(uv, uTextureID));
+	fragment = texture(uTexture, uv);
 }

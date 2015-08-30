@@ -34,8 +34,10 @@ namespace BlocksWorld
             this.input = new InputDriver(this);
 
             GL.DebugMessageCallback(this.DebugProc, IntPtr.Zero);
-            
+
             this.SetScene(this.worldScene);
+
+            this.VSync = VSyncMode.On;
         }
 
         private HashSet<Scene> usedScenes = new HashSet<Scene>();

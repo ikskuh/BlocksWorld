@@ -8,6 +8,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -42,6 +43,9 @@ namespace BlocksWorld
 
         int networkUpdateCounter = 0;
         private PhraseTranslator sender;
+        private int fps;
+        private Font font;
+        private Image uiTextures;
 
         public WorldScene()
         {
@@ -49,7 +53,14 @@ namespace BlocksWorld
             this.world.DetailInterationTriggered += World_DetailInterationTriggered;
             this.debug = new DebugRenderer();
             this.renderer = new WorldRenderer(this.world);
-            this.ui = new UIRenderer();
+
+            using (var stream = typeof(WorldScene).Assembly.GetManifestResourceStream("BlocksWorld.Textures.UI.png"))
+            {
+                this.uiTextures = Image.FromStream(stream);
+            }
+
+            this.ui = new UIRenderer(1280, 720);
+            this.ui.Paint += Ui_Paint;
 
             this.network = new Network(new TcpClient("localhost", 4523));
             this.receiver = new BasicReceiver(this.network, this.world);
@@ -65,6 +76,37 @@ namespace BlocksWorld
             this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
 
             this.network[NetworkPhrase.SetInteractions] = this.SetInteractions;
+        }
+
+        private void Ui_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.Clear(Color.Transparent);
+            this.font = this.font ?? new Font(FontFamily.GenericSansSerif, 16.0f);
+            g.DrawString(string.Format("{0} FPS", this.fps), this.font, Brushes.White, new Point(32, 32));
+
+            int c = this.tools.Count;
+            var rectFull = new Rectangle(32, 32, 64 * c, 64);
+            var rectCurrent = new Rectangle(32 + 64 * this.currentTool, 32, 64, 64);
+            g.FillRectangle(Brushes.White, rectFull);
+            g.FillRectangle(Brushes.Wheat, rectCurrent);
+
+            for (int i = 0; i < c; i++)
+            {
+                var rectItem = new Rectangle(32 + 64 * i, 32, 64, 64);
+                e.Graphics.DrawImage(
+                    this.uiTextures,
+                    rectItem,
+                    new Rectangle(0, 256 * this.tools[i].Item1, 256, 256),
+                    GraphicsUnit.Pixel);
+            }
+
+            g.DrawRectangle(Pens.Black, rectFull);
+            
+            g.DrawImage(this.uiTextures, 
+                new Rectangle(640-32, 360-32, 64, 64), 
+                new Rectangle(0, 0, 256, 256),
+                GraphicsUnit.Pixel);
         }
 
         private void SetInteractions(BinaryReader reader)
@@ -199,6 +241,7 @@ namespace BlocksWorld
 
         public override void UpdateFrame(IGameInputDriver input, double time)
         {
+            this.fps = (int)(1.0f / time);
             this.totalTime += time;
 
             this.network.Dispatch();
@@ -234,7 +277,6 @@ namespace BlocksWorld
 
         public override void RenderFrame(double time)
         {
-            this.ui.Reset();
             this.debug.Reset();
 
             GL.Enable(EnableCap.CullFace);
@@ -300,16 +342,6 @@ namespace BlocksWorld
 
             this.debug.Render(cam, time);
 
-            {
-                for (int i = 0; i < this.tools.Count; i++)
-                {
-                    Vector2 pos = new Vector2(32 + 64 * i, 32);
-                    if (i == this.currentTool)
-                        this.ui.Draw(3, pos, new Vector2(64, 64), ImageAnchor.TopLeft);
-                    this.ui.Draw(this.tools[i].Item1, pos, new Vector2(64, 64), ImageAnchor.TopLeft);
-                }
-                this.ui.Draw(0, new Vector2(640, 360), new Vector2(64, 64), ImageAnchor.MiddleCenter);
-            }
             this.ui.Render(cam, time);
         }
 
@@ -339,7 +371,7 @@ namespace BlocksWorld
                 cam.CreateProjectionMatrix(1280.0f / 720.0f); // HACK: Hardcoded aspect
 
             GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
-            
+
             this.playerModel.Render(cam, time);
         }
 

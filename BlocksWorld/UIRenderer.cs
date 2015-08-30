@@ -2,6 +2,8 @@
 using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace BlocksWorld
 {
@@ -10,6 +12,9 @@ namespace BlocksWorld
         Shader shader;
         int vao;
         int vertexBuffer;
+        int texture;
+
+        public event EventHandler<PaintEventArgs> Paint;
 
         Vector2[] vertices = new[]
         {
@@ -21,7 +26,12 @@ namespace BlocksWorld
             new Vector2(0.0f, 1.0f),
             new Vector2(1.0f, 1.0f),
         };
-        private TextureArray textures;
+
+
+        public UIRenderer(int virtualWidth, int virtualHeight)
+        {
+            this.backbuffer = new Bitmap(virtualWidth, virtualHeight);
+        }
 
         ~UIRenderer()
         {
@@ -34,11 +44,9 @@ namespace BlocksWorld
                 "BlocksWorld.Shaders.ScreenSpace.vs",
                 "BlocksWorld.Shaders.Texture.fs");
 
-            this.textures = TextureArray.LoadFromResource(
-                "BlocksWorld.Textures.UI.png");
-
             this.vao = GL.GenVertexArray();
             this.vertexBuffer = GL.GenBuffer();
+            this.texture = GL.GenTexture();
 
             GL.BindVertexArray(this.vao);
             {
@@ -64,51 +72,47 @@ namespace BlocksWorld
                     BufferUsageHint.StaticDraw);
             }
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        }
 
-        private List<Quads> quads = new List<Quads>();
-
-        public void Reset()
-        {
-            this.quads.Clear();
-        }
-
-        public void Draw(int textureID, Vector2 position, Vector2 size, ImageAnchor anchor)
-        {
-            position.X /= this.VirtualScreenSize.X;
-            position.Y /= this.VirtualScreenSize.Y;
-            
-            size.X /= this.VirtualScreenSize.X;
-            size.Y /= this.VirtualScreenSize.Y;
-
-            // First/second byte encoding in anchor defines position
-            switch((int)anchor & 0xF0)
+            GL.BindTexture(TextureTarget.Texture2D, this.texture);
             {
-                case 0x00: break;
-                case 0x10: position.X -= 0.5f * size.X; break;
-                case 0x20: position.X -= size.X; break;
+                GL.TexImage2D(
+                    TextureTarget.Texture2D,
+                    0,
+                    PixelInternalFormat.Rgba,
+                    this.backbuffer.Width, this.backbuffer.Height,
+                    0,
+                    PixelFormat.Bgra,
+                    PixelType.UnsignedByte,
+                    IntPtr.Zero);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             }
-            switch ((int)anchor & 0x0F)
-            {
-                case 0x00: break;
-                case 0x01: position.Y -= 0.5f * size.Y; break;
-                case 0x02: position.Y -= size.Y; break;
-            }
-
-            position.Y = 1.0f - position.Y;
-
-            this.quads.Add(new Quads()
-            {
-                TextureID = textureID,
-                Position = position,
-                Size = size
-            });
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
+
+        private Bitmap backbuffer;
 
         public void Render(Camera camera, double time)
         {
             if (this.vao == 0)
                 throw new ObjectDisposedException("UIRenderer");
+
+            // Upload texture image
+            {
+                this.OnPaint();
+                
+                GL.BindTexture(TextureTarget.Texture2D, this.texture);
+                var data = this.backbuffer.LockBits(
+                    new Rectangle(0, 0, this.backbuffer.Width, this.backbuffer.Height),
+                    System.Drawing.Imaging.ImageLockMode.ReadOnly,
+                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, this.backbuffer.Width, this.backbuffer.Height,
+                    PixelFormat.Bgra,
+                    PixelType.UnsignedByte,
+                    data.Scan0);
+                this.backbuffer.UnlockBits(data);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
 
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
@@ -117,25 +121,29 @@ namespace BlocksWorld
 
             this.shader.UseProgram();
 
-            GL.Uniform1(this.shader["uTextures"], 0);
+            GL.Uniform1(this.shader["uTexture"], 0);
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(this.textures.Target, this.textures.ID);
+            GL.BindTexture(TextureTarget.Texture2D, this.texture);
 
             GL.BindVertexArray(this.vao);
             {
-                foreach (var quad in this.quads)
-                {                    
-                    GL.Uniform2(this.shader["uUpperLeft"], quad.Position);
-                    GL.Uniform2(this.shader["uSize"], quad.Size);
-                    GL.Uniform1(this.shader["uTextureID"], (float)quad.TextureID);
-
-                    GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
-                }
+                GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
             }
             GL.BindVertexArray(0);
-
+            GL.BindTexture(TextureTarget.Texture2D, 0);
             GL.UseProgram(0);
+        }
+
+        private void OnPaint()
+        {
+            var rect = new Rectangle(0, 0, this.backbuffer.Width, this.backbuffer.Height);
+            using (var g = Graphics.FromImage(this.backbuffer))
+            {
+                if (this.Paint != null)
+                    this.Paint(this, new PaintEventArgs(g, rect));
+                g.Flush();
+            }
         }
 
         public void Dispose()
@@ -144,21 +152,13 @@ namespace BlocksWorld
 
             GL.DeleteVertexArray(this.vao);
             GL.DeleteBuffer(this.vertexBuffer);
+            GL.DeleteTexture(this.texture);
 
             this.shader?.Dispose();
-            this.textures?.Dispose();
 
             this.vao = 0;
             this.vertexBuffer = 0;
-        }
-
-        public Vector2 VirtualScreenSize { get; set; } = new Vector2(1280.0f, 720.0f);
-
-        private class Quads
-        {
-            public Vector2 Position { get; internal set; }
-            public Vector2 Size { get; internal set; }
-            public int TextureID { get; internal set; }
+            this.texture = 0;
         }
     }
 }
