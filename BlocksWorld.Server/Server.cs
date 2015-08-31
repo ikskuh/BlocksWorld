@@ -13,136 +13,145 @@ using OpenTK;
 
 namespace BlocksWorld
 {
-    class Server : IPhraseSender
-    {
-        private TcpListener server;
-        private HashSet<Client> clients = new HashSet<Client>();
-        private World world;
-        private volatile int clientIdCounter = 0;
+	class Server : IPhraseSender
+	{
+		private TcpListener server;
+		private HashSet<Client> clients = new HashSet<Client>();
+		private World world;
+		private volatile int clientIdCounter = 0;
 
-        static void Main(string[] args)
-        {
-            var pgm = new Server();
-            pgm.Run();
-        }
+		static void Main(string[] args)
+		{
+			var pgm = new Server();
+			pgm.Run();
+		}
 
-        void Run()
-        {
-            this.world = new World();
-            this.world.DetailInterationTriggered += World_DetailInterationTriggered;
+		void Run()
+		{
+			this.world = new World();
+			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
 
-            var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
-            obj.Rotation = (float)(0.32f * Math.PI);
-            obj.Interactions.Add("Knock");
+			var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
+			obj.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
+			obj.Interactions.Add("Knock");
 
-            obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
-            obj.Rotation = (float)(0.1f * Math.PI);
-            obj.Interactions.Add("Knock");
-            obj.Interactions.Add("Flip Over");
+			obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
+			obj.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
+			obj.Interactions.Add("Knock");
+			obj.Interactions.Add("Flip Over");
+			obj.InterationTriggered += (s, e) =>
+			{
+				if (e.Interaction != "Flip Over")
+					return;
+				var o = (s as DetailObject);
+				var rot = o.Rotation;
+				rot.X += (float)Math.PI;
+				o.Rotation = rot;
+			};
 
-            LoadWorld();
+			LoadWorld();
 
-            this.server = new TcpListener(IPAddress.Any, 4523);
-            server.Start();
-            BeginAccept();
+			this.server = new TcpListener(IPAddress.Any, 4523);
+			server.Start();
+			BeginAccept();
 
-            Stopwatch timer = new Stopwatch();
-            while (true)
-            {
-                double deltaTime = timer.Elapsed.TotalSeconds;
-                timer.Restart();
+			Stopwatch timer = new Stopwatch();
+			while (true)
+			{
+				double deltaTime = timer.Elapsed.TotalSeconds;
+				timer.Restart();
 
-                obj.Rotation += (float)deltaTime;
+				obj.Rotation += Vector3.UnitY * (float)deltaTime;
 
-                lock (this.clients)
-                {
-                    foreach (var client in this.clients)
-                    {
-                        client.Update(deltaTime);
-                    }
-                    this.clients.RemoveWhere(c => (c.IsAlive == false));
-                }
-                Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
-            }
-        }
+				lock (this.clients)
+				{
+					foreach (var client in this.clients)
+					{
+						client.Update(deltaTime);
+					}
+					this.clients.RemoveWhere(c => (c.IsAlive == false));
+				}
+				Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
+			}
+		}
 
-        private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
-        {
-            Console.WriteLine("Interaction '{0}' at object {1}", e.Interaction, e.Detail.ID);
-        }
+		private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
+		{
+			Console.WriteLine("Interaction '{0}' at object {1}", e.Interaction, e.Detail.ID);
+		}
 
-        private void LoadWorld()
-        {
-            if (File.Exists("world.dat"))
-            {
-                this.World.Load("world.dat");
-            }
-            else
-            {
-                for (int x = 0; x <= 32; x++)
-                {
-                    for (int z = 0; z < 32; z++)
-                    {
-                        this.World[x, 0, z] = new BasicBlock(2);
-                    }
-                }
+		private void LoadWorld()
+		{
+			if (File.Exists("world.dat"))
+			{
+				this.World.Load("world.dat");
+			}
+			else
+			{
+				for (int x = 0; x <= 32; x++)
+				{
+					for (int z = 0; z < 32; z++)
+					{
+						this.World[x, 0, z] = new BasicBlock(2);
+					}
+				}
 
-                this.World[1, 1, 1] = new BasicBlock(1);
+				this.World[1, 1, 1] = new BasicBlock(1);
 
-                for (int x = 0; x < 32; x++)
-                {
-                    for (int y = 1; y < 4; y++)
-                    {
-                        if ((x != 16) || (y >= 3))
-                            this.World[x, y, 8] = new BasicBlock(3);
-                    }
-                }
-            }
-        }
+				for (int x = 0; x < 32; x++)
+				{
+					for (int y = 1; y < 4; y++)
+					{
+						if ((x != 16) || (y >= 3))
+							this.World[x, y, 8] = new BasicBlock(3);
+					}
+				}
+			}
+		}
 
-        private void BeginAccept()
-        {
-            this.server.BeginAcceptTcpClient(this.EndAccept, null);
-        }
+		private void BeginAccept()
+		{
+			this.server.BeginAcceptTcpClient(this.EndAccept, null);
+		}
 
-        private void EndAccept(IAsyncResult ar)
-        {
-            var tcp = this.server.EndAcceptTcpClient(ar);
-            var client = new Client(this, tcp, ++clientIdCounter);
+		private void EndAccept(IAsyncResult ar)
+		{
+			var tcp = this.server.EndAcceptTcpClient(ar);
+			var client = new Client(this, tcp, ++clientIdCounter);
 
-            lock (this.clients)
-            {
-                this.clients.Add(client);
-            }
+			lock (this.clients)
+			{
+				this.clients.Add(client);
+			}
 
-            this.BeginAccept();
-        }
+			this.BeginAccept();
+		}
 
-        void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)
-        {
-            foreach (var client in this.Clients)
-            {
-                client.Network.Send(phrase, sender);
-            }
-        }
+		void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)
+		{
+			foreach (var client in this.Clients)
+			{
+				client.Network.Send(phrase, sender);
+			}
+		}
 
-        public World World
-        {
-            get
-            {
-                return world;
-            }
-        }
+		public World World
+		{
+			get
+			{
+				return world;
+			}
+		}
 
-        public IEnumerable<Client> Clients
-        {
-            get
-            {
-                lock (this.clients)
-                {
-                    return this.clients.ToArray();
-                }
-            }
-        }
-    }
+		public IEnumerable<Client> Clients
+		{
+			get
+			{
+				lock (this.clients)
+				{
+					return this.clients.ToArray();
+				}
+			}
+		}
+	}
 }

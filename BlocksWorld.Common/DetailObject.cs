@@ -12,7 +12,7 @@ namespace BlocksWorld
         public event EventHandler<DetailInteractionEventArgs> InterationTriggered;
 
         private Vector3 position;
-        private float rotation;
+        private Vector3 rotation;
         private ObservableCollection<string> interactions = new ObservableCollection<string>();
 
         public DetailObject(int id)
@@ -48,7 +48,7 @@ namespace BlocksWorld
         public int ID { get; private set; }
         public string Model { get; set; }
 
-        public float Rotation
+        public Vector3 Rotation
         {
             get
             {
@@ -57,8 +57,8 @@ namespace BlocksWorld
 
             set
             {
-                bool changed = Math.Abs(this.rotation - value) > 0.02f;
-                rotation = value;
+                bool changed = (value - rotation).Length > 0.02f;
+				rotation = value;
                 if (changed)
                     this.OnChanged();
             }

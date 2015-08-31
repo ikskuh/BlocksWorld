@@ -204,7 +204,7 @@ namespace BlocksWorld
 
 			string model = reader.ReadString();
 			var pos = reader.ReadVector3();
-			float rot = reader.ReadSingle();
+			var rot = reader.ReadVector3();
 
 			DetailObject obj = new DetailObject(id);
 			obj.Position = pos;
@@ -224,7 +224,7 @@ namespace BlocksWorld
 		{
 			int id = reader.ReadInt32();
 			var pos = reader.ReadVector3();
-			float rot = reader.ReadSingle();
+			var rot = reader.ReadVector3();
 
 			DetailObject obj = this.world.GetDetail(id);
 			if (obj == null)
@@ -414,7 +414,7 @@ namespace BlocksWorld
 
 			GL.Enable(EnableCap.CullFace);
 			GL.CullFace(CullFaceMode.Back);
-
+			GL.Disable(EnableCap.Blend);
 			GL.Enable(EnableCap.DepthTest);
 			GL.DepthFunc(DepthFunction.Lequal);
 			GL.ClearColor(Color4.LightSkyBlue);
@@ -427,8 +427,9 @@ namespace BlocksWorld
 				Target = new Vector3(16, 2, 16)
 			};
 
-			Matrix4 worldViewProjection =
-				Matrix4.Identity *
+			Matrix4 world = Matrix4.Identity;
+            Matrix4 worldViewProjection =
+				world *
 				cam.CreateViewMatrix() *
 				cam.CreateProjectionMatrix(this.Aspect);
 
@@ -436,6 +437,7 @@ namespace BlocksWorld
 			{
 				this.objectShader.UseProgram();
 				GL.Uniform1(this.objectShader["uTextures"], 0);
+				GL.UniformMatrix4(this.objectShader["uWorld"], false, ref world);
 				GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
 				GL.ActiveTexture(TextureUnit.Texture0);
@@ -480,12 +482,18 @@ namespace BlocksWorld
 
 		private void RenderDetail(Camera cam, DetailObject detail, double time)
 		{
+			Matrix4 world =
+				Matrix4.CreateRotationX(detail.Rotation.X) *
+				Matrix4.CreateRotationY(detail.Rotation.Y) *
+				Matrix4.CreateRotationZ(detail.Rotation.Z) *
+				Matrix4.CreateTranslation(detail.Position);
+
 			Matrix4 worldViewProjection =
-				Matrix4.CreateRotationY(detail.Rotation) *
-				Matrix4.CreateTranslation(detail.Position) *
+				world *
 				cam.CreateViewMatrix() *
 				cam.CreateProjectionMatrix(this.Aspect);
 
+			GL.UniformMatrix4(this.objectShader["uWorld"], false, ref world);
 			GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
 			var model = this.GetModelFromName(detail.Model);
@@ -497,12 +505,15 @@ namespace BlocksWorld
 
 		private void RenderPlayer(Camera cam, Vector3 position, float rotation, double time)
 		{
-			Matrix4 worldViewProjection =
+			Matrix4 world =
 				Matrix4.CreateRotationY(rotation) *
-				Matrix4.CreateTranslation(position) *
+				Matrix4.CreateTranslation(position);
+			Matrix4 worldViewProjection =
+				world * 
 				cam.CreateViewMatrix() *
 				cam.CreateProjectionMatrix(this.Aspect);
 
+			GL.UniformMatrix4(this.objectShader["uWorld"], false, ref world);
 			GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
 			this.playerModel.Render(cam, time);

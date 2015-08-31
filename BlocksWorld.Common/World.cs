@@ -61,7 +61,10 @@ namespace BlocksWorld
 
             var body = new RigidBody(new BoxShape(1.0f, 0.2f, 1.5f));
             body.Position = obj.Position.Jitter();
-            body.Orientation = JMatrix.CreateRotationY(obj.Rotation);
+            body.Orientation =
+				JMatrix.CreateRotationX(obj.Rotation.X) *
+				JMatrix.CreateRotationY(obj.Rotation.Y) *
+				JMatrix.CreateRotationZ(obj.Rotation.Z);
             body.IsStatic = true;
             body.Tag = obj;
             body.Material = this.blockMaterial;
@@ -72,7 +75,10 @@ namespace BlocksWorld
             obj.Changed += (s, e) =>
             {
                 body.Position = obj.Position.Jitter();
-                body.Orientation = JMatrix.CreateRotationY(obj.Rotation);
+                body.Orientation =
+					JMatrix.CreateRotationX(obj.Rotation.X) *
+					JMatrix.CreateRotationY(obj.Rotation.Y) *
+					JMatrix.CreateRotationZ(obj.Rotation.Z);
             };
 
             this.OnDetailCreated(obj);
