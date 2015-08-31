@@ -5,9 +5,12 @@ namespace BlocksWorld
 	public sealed class FlipOverBehaviour : Behaviour
 	{
 		private Interaction interaction;
+		private Slot flip;
 
 		public FlipOverBehaviour()
 		{
+			this.flip = this.CreateSlot("flip", this.Obj_InterationTriggered);
+
 			this.Attached += FlipOverBehaviour_Attached;
 			this.Detached += FlipOverBehaviour_Detached;
 		}
@@ -26,8 +29,10 @@ namespace BlocksWorld
 		private void Obj_InterationTriggered(object sender, EventArgs e)
 		{
 			var rot = this.Detail.Rotation;
-			rot.X += (float)Math.PI;
+			rot.X += this.Rotation;
 			this.Detail.Rotation = rot;
 		}
+
+		public float Rotation { get; set; } = (float)Math.PI;
 	}
 }

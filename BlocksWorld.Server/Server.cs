@@ -31,16 +31,25 @@ namespace BlocksWorld
 			this.world = new World();
 			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
 
-			var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
-			obj.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
+			var objA = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
+			objA.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
 			// obj.Interactions.Add("Knock");
 
-			obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
-			obj.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
+			var objB = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
+			objB.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
 			// obj.Interactions.Add("Knock");
 
-			var behav = new FlipOverBehaviour();
-			behav.Attach(obj);
+			var behavA = new FlipOverBehaviour();
+			behavA.Attach(objA);
+
+			var behavB = new FlipOverBehaviour();
+			behavB.Attach(objB);
+
+			var behavB1 = new ButtonBehaviour();
+			behavB1.Attach(objB);
+
+			// Connect the both behaviours
+			behavB1.Signals["clicked"].Connect(behavA.Slots["flip"]);
 
 			LoadWorld();
 
@@ -54,7 +63,7 @@ namespace BlocksWorld
 				double deltaTime = timer.Elapsed.TotalSeconds;
 				timer.Restart();
 
-				obj.Rotation += Vector3.UnitY * (float)deltaTime;
+				objB.Rotation += Vector3.UnitY * (float)deltaTime;
 
 				lock (this.clients)
 				{

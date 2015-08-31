@@ -9,6 +9,8 @@ namespace BlocksWorld
 	public abstract class Behaviour
 	{
 		private DetailObject detail;
+		private Dictionary<string, Signal> signals = new Dictionary<string, Signal>();
+		private Dictionary<string, Slot> slots = new Dictionary<string, Slot>();
 
 		public event EventHandler<DetailEventArgs> Attached;
 		public event EventHandler<DetailEventArgs> Detached;
@@ -17,6 +19,27 @@ namespace BlocksWorld
 		{
 
         }
+
+		protected Signal CreateSignal(string name)
+		{
+			var signal = new Signal(this, name);
+			this.signals.Add(signal.Name, signal);
+			return signal;
+		}
+
+		protected Slot CreateSlot(string name)
+		{
+			var slot = new Slot(this, name);
+			this.slots.Add(slot.Name, slot);
+			return slot;
+		}
+
+		protected Slot CreateSlot(string name, EventHandler handler)
+		{
+			var slot = this.CreateSlot(name);
+			slot.SignalRecevied += handler;
+			return slot;
+		}
 
 		public void Attach(DetailObject detail)
 		{
@@ -44,5 +67,9 @@ namespace BlocksWorld
 		}
 
 		public DetailObject Detail { get { return this.detail; } }
+
+		public IReadOnlyDictionary<string, Signal> Signals { get { return this.signals; } }
+
+		public IReadOnlyDictionary<string, Slot> Slots { get { return this.slots; } }
 	}
 }
