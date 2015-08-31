@@ -91,7 +91,6 @@
     <Compile Include="Proxy.cs" />
     <Compile Include="Scene.cs" />
     <Compile Include="Shader.cs" />
-    <Compile Include="UseTool.cs" />
     <Compile Include="SpawnTool.cs" />
     <Compile Include="StaticCamera.cs" />
     <Compile Include="TextureArray.cs" />

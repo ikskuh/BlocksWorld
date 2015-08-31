@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="BasicBlock.cs" />
     <Compile Include="BasicReceiver.cs" />
+    <Compile Include="Behaviour.cs" />
     <Compile Include="Block.cs" />
     <Compile Include="Block.Templates.cs" />
     <Compile Include="BlockEventArgs.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="IGameInputDriver.cs" />
     <Compile Include="IInteractiveEnvironment.cs" />
+    <Compile Include="Interaction.cs" />
     <Compile Include="IPhraseSender.cs" />
     <Compile Include="IRenderer.cs" />
     <Compile Include="IUpdateable.cs" />

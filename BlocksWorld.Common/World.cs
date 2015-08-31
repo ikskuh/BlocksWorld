@@ -56,7 +56,7 @@ namespace BlocksWorld
                 throw new InvalidOperationException();
 
             obj.Changed += Obj_Changed;
-            obj.InterationTriggered += Obj_InterationTriggered;
+            obj.InteractionTriggered += Obj_InterationTriggered;
             this.details.Add(obj);
 
             var body = new RigidBody(new BoxShape(1.0f, 0.2f, 1.5f));
@@ -119,7 +119,7 @@ namespace BlocksWorld
             if (detail == null)
                 return;
             detail.Changed -= Obj_Changed;
-            detail.InterationTriggered -= Obj_InterationTriggered;
+            detail.InteractionTriggered -= Obj_InterationTriggered;
             if (this.detailBodies.ContainsKey(id))
             {
                 this.RemoveBody(this.detailBodies[id]);

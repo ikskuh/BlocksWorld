@@ -80,9 +80,12 @@ namespace BlocksWorld
             {
                 s.Write(detail.ID);
                 s.Write(detail.Interactions.Count);
-                foreach (var interaction in detail.Interactions)
-                    s.Write(interaction);
-            });
+				foreach (var interaction in detail.Interactions)
+				{
+					s.Write(interaction.ID);
+					s.Write(interaction.Name);
+				}
+			});
         }
 
         public void CreateNewDetail(string model, Vector3 pos)
@@ -104,12 +107,12 @@ namespace BlocksWorld
             });
         }
 
-        public void TriggerInteraction(DetailObject detail, string interaction)
+        public void TriggerInteraction(DetailObject detail, Interaction interaction)
         {
             this.sender.Send(NetworkPhrase.TriggerInteraction, (s) =>
             {
                 s.Write(detail.ID);
-                s.Write(interaction);
+				s.Write(interaction.ID);
             });
         }
 

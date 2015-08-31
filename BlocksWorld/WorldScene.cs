@@ -63,6 +63,7 @@ namespace BlocksWorld
 			{
 				this.uiTextures = Image.FromStream(stream);
 			}
+
 			this.largeFont = new Font(FontFamily.GenericSansSerif, 16.0f);
 			this.smallFont = new Font(FontFamily.GenericSansSerif, 8.0f);
 			this.ui = new UIRenderer(1280, 720);
@@ -148,7 +149,7 @@ namespace BlocksWorld
 			var interactions = detail.Interactions.ToArray();
 			for (int i = 0; i < interactions.Length; i++)
 			{
-				var size = g.MeasureString(interactions[i], font);
+				var size = g.MeasureString(interactions[i].Name, font);
 
 				area.Width = Math.Max(size.Width, area.Width);
 				area.Height += size.Height + 1;
@@ -158,7 +159,7 @@ namespace BlocksWorld
 			float pointer = 0.0f;
 			for (int i = 0; i < interactions.Length; i++)
 			{
-				var text = interactions[i];
+				var text = interactions[i].Name;
 				var size = g.MeasureString(text, font);
 
 				if (i == selection)
@@ -179,11 +180,14 @@ namespace BlocksWorld
 		{
 			int id = reader.ReadInt32();
 			int count = reader.ReadInt32();
-			List<string> strings = new List<string>();
+			List<Interaction> strings = new List<Interaction>();
 			for (int i = 0; i < count; i++)
 			{
-				strings.Add(reader.ReadString());
+				int iid = reader.ReadInt32();
+				string name = reader.ReadString();
+				strings.Add(new Interaction(iid, name));
 			}
+
 			var detail = this.world.GetDetail(id);
 			if (detail == null)
 				return;
@@ -280,7 +284,6 @@ namespace BlocksWorld
 		{
 			this.tools.Add(new Tuple<int, Tool>(1, new BlockPlaceTool(this)));
 			this.tools.Add(new Tuple<int, Tool>(2, new SpawnTool(this)));
-			this.tools.Add(new Tuple<int, Tool>(4, new UseTool(this)));
 
 			this.player = new Player(this.world);
 			this.player.Position = spawn;

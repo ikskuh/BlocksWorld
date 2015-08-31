@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
@@ -74,18 +75,20 @@ namespace BlocksWorld
         private void TriggerInteraction(BinaryReader reader)
         {
             int id = reader.ReadInt32();
-            string interaction = reader.ReadString();
+            int iid = reader.ReadInt32();
 
-            var i = this.server.World.GetDetail(id);
-            if (i == null)
+            var detail = this.server.World.GetDetail(id);
+            if (detail == null)
                 return;
-            if (i.Interactions.Contains(interaction))
+
+			var interaction = detail.Interactions.FirstOrDefault(i => i.ID == iid);
+			if (interaction != null)
             {
-                i.Interact(interaction);
+				interaction.Trigger();
             }
             else
             {
-                Console.WriteLine("Interaction '{0}' not found.", interaction);
+                Console.WriteLine("Interaction {0} not found on {1}.", iid, id);
             }
         }
 

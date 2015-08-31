@@ -33,21 +33,14 @@ namespace BlocksWorld
 
 			var obj = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
 			obj.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
-			obj.Interactions.Add("Knock");
+			// obj.Interactions.Add("Knock");
 
 			obj = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
 			obj.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
-			obj.Interactions.Add("Knock");
-			obj.Interactions.Add("Flip Over");
-			obj.InterationTriggered += (s, e) =>
-			{
-				if (e.Interaction != "Flip Over")
-					return;
-				var o = (s as DetailObject);
-				var rot = o.Rotation;
-				rot.X += (float)Math.PI;
-				o.Rotation = rot;
-			};
+			// obj.Interactions.Add("Knock");
+
+			var behav = new FlipOverBehaviour();
+			behav.Attach(obj);
 
 			LoadWorld();
 
