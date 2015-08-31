@@ -8,8 +8,8 @@ The game is built around two modes:
 - Editor Mode
 - Play Mode
 
-In the Editor Mode, players can built a Scenario in a block styled world. Each Scenario can be than
-played in the Play Mode.
+In the Editor Mode, players can built a Scenario in a block styled world. Each Scenario can be
+played in the Play Mode afterwards. Players can also start publishes Scenarios.
 
 The Editor Mode provides features to build a world consisting of Blocks and Details. Blocks are
 known from games like Minecraft, they are placed in a regular grid and built the structure of the

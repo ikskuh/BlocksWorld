@@ -47,8 +47,7 @@ namespace BlocksWorld
 		private Font largeFont;
 		private Image uiTextures;
 		private Font smallFont;
-
-
+		
 		private DetailObject selectedDetail;
 		private int selectedDetailInteraction;
 		private HashSet<DetailObject> visibleDetails = new HashSet<DetailObject>();
