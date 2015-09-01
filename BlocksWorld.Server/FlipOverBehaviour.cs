@@ -9,7 +9,7 @@ namespace BlocksWorld
 
 		public FlipOverBehaviour()
 		{
-			this.flip = this.CreateSlot("flip", this.Obj_InterationTriggered);
+			this.flip = this.CreateSlot("flip", (s, e) => this.FlipTable());
 
 			this.Attached += FlipOverBehaviour_Attached;
 			this.Detached += FlipOverBehaviour_Detached;
@@ -17,7 +17,7 @@ namespace BlocksWorld
 
 		private void FlipOverBehaviour_Attached(object sender, DetailEventArgs e)
 		{
-			this.interaction = new Interaction("Flip Over", Obj_InterationTriggered);
+			this.interaction = new Interaction("Flip Over", (s, _) => this.FlipTable());
 			this.Detail.Interactions.Add(this.interaction);
 		}
 
@@ -26,8 +26,9 @@ namespace BlocksWorld
 			this.Detail.Interactions.Remove(this.interaction);
 		}
 
-		private void Obj_InterationTriggered(object sender, EventArgs e)
+		private void FlipTable()
 		{
+
 			var rot = this.Detail.Rotation;
 			rot.X += this.Rotation;
 			this.Detail.Rotation = rot;

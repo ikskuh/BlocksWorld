@@ -60,8 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ButtonBehaviour.cs" />
-    <Compile Include="Client.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="FlipOverBehaviour.cs" />
+    <Compile Include="RotationBehaviour.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

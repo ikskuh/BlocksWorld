@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace BlocksWorld
 
 		public event EventHandler<DetailEventArgs> Attached;
 		public event EventHandler<DetailEventArgs> Detached;
-		
+		public event EventHandler<FrameEventArgs> Updated;
+
 		protected Behaviour()
 		{
 
@@ -43,7 +45,12 @@ namespace BlocksWorld
 
 		public void Attach(DetailObject detail)
 		{
-			if (detail == null) throw new ArgumentNullException("detail");
+			if (detail == null)
+				throw new ArgumentNullException("detail");
+			if (this.World == null)
+				throw new InvalidOperationException("Invalid behaviour: Not created via World.CreateBehaviour");
+			if (this.detail != null)
+				throw new InvalidOperationException("Cannot attach an already attached behaviour.");
 			this.detail = detail;
 			this.OnAttach(this.detail);
 		}
@@ -52,6 +59,18 @@ namespace BlocksWorld
 		{
 			this.OnDetach(this.detail);
 			this.detail = null;
+		}
+
+		/// <summary>
+		/// Calls the event Updated. Should be overhauled into a better solution.
+		/// </summary>
+		/// <param name="deltaTime"></param>
+		public void Update(double deltaTime)
+		{
+			if (deltaTime <= 0.0)
+				return;
+			if (this.Updated != null)
+				this.Updated(this, new FrameEventArgs(deltaTime));
 		}
 
 		protected virtual void OnAttach(DetailObject detail)
@@ -68,8 +87,12 @@ namespace BlocksWorld
 
 		public DetailObject Detail { get { return this.detail; } }
 
+		public bool IsAttached { get { return this.detail != null; } }
+
 		public IReadOnlyDictionary<string, Signal> Signals { get { return this.signals; } }
 
 		public IReadOnlyDictionary<string, Slot> Slots { get { return this.slots; } }
+
+		public World World { get; internal set; }
 	}
 }

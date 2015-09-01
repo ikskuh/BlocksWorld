@@ -26,7 +26,7 @@ namespace BlocksWorld
 			this.Detail.Interactions.Remove(this.interaction);
 		}
 
-		private void Button_Triggered(object sender, EventArgs e)
+		private void Button_Triggered(object sender, ActorEventArgs e)
 		{
 			this.button.Send();
 		}

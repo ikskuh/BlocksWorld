@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BlocksWorld
 {
-    internal partial class Client : IPhraseSender
+    internal partial class Player : IPhraseSender, IActor
     {
         private readonly int id;
         private Server server;
@@ -18,7 +18,7 @@ namespace BlocksWorld
 
         private PhraseTranslator client, others, broadcast;
 
-        public Client(Server server, TcpClient tcp, int id)
+        public Player(Server server, TcpClient tcp, int id)
         {
             this.id = id;
             this.server = server;
@@ -84,7 +84,7 @@ namespace BlocksWorld
 			var interaction = detail.Interactions.FirstOrDefault(i => i.ID == iid);
 			if (interaction != null)
             {
-				interaction.Trigger();
+				interaction.Trigger(this);
             }
             else
             {

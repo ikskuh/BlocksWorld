@@ -9,7 +9,7 @@ namespace BlocksWorld
 		private readonly string name;
 		private readonly int id;
 
-		public event EventHandler Triggered;
+		public event EventHandler<ActorEventArgs> Triggered;
 
 		public Interaction(string name) : 
 			this(Interaction.counter++, name) // TODO: Is this really such a good idea?
@@ -17,7 +17,7 @@ namespace BlocksWorld
 
 		}
 
-		public Interaction(string name, EventHandler triggered) :
+		public Interaction(string name, EventHandler<ActorEventArgs> triggered) :
 			this(name)
 		{
 			if (triggered != null)
@@ -32,10 +32,10 @@ namespace BlocksWorld
 			this.name = name;
 		}
 
-		public void Trigger()
+		public void Trigger(IActor actor)
 		{
 			if (this.Triggered != null)
-				this.Triggered(this, EventArgs.Empty);
+				this.Triggered(this, new ActorEventArgs(actor));
 		}
 
 		public string Name { get { return this.name; } }

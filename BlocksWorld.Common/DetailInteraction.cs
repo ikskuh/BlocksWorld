@@ -2,9 +2,10 @@
 
 namespace BlocksWorld
 {
-    public class DetailInteractionEventArgs : EventArgs
+    public class DetailInteractionEventArgs : ActorEventArgs
     {
-        public DetailInteractionEventArgs(DetailObject detail, Interaction interaction)
+        public DetailInteractionEventArgs(DetailObject detail, Interaction interaction, IActor actor) :
+			base(actor)
         {
             this.Detail = detail;
             this.Interaction = interaction;

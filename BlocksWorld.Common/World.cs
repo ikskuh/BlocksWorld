@@ -23,6 +23,9 @@ namespace BlocksWorld
         private List<DetailObject> details = new List<DetailObject>();
         private Dictionary<int, RigidBody> detailBodies = new Dictionary<int, RigidBody>();
 
+		private Dictionary<int, Behaviour> behaviours = new Dictionary<int, Behaviour>();
+		private List<Behaviour> attachedBehaviours = new List<Behaviour>();
+
         private Material blockMaterial = new Material()
         {
             Restitution = 0.0f,
@@ -30,7 +33,7 @@ namespace BlocksWorld
             StaticFriction = 0.1f
         };
 
-        public event EventHandler<BlockEventArgs> BlockChanged;
+		public event EventHandler<BlockEventArgs> BlockChanged;
 
         public event EventHandler<DetailEventArgs> DetailCreated;
         public event EventHandler<DetailEventArgs> DetailChanged;
@@ -128,9 +131,21 @@ namespace BlocksWorld
             this.details.RemoveAll(d => d.ID == id);
 
             this.OnDetailRemoved(detail);
-        }
+		}
 
-        private void OnDetailCreated(DetailObject obj)
+		public T CreateBehaviour<T>()
+			where T : Behaviour, new()
+		{
+			var behaviour = new T();
+			behaviour.World = this;
+			behaviour.Attached += (s, e) => this.attachedBehaviours.Add(behaviour);
+			behaviour.Detached += (s, e) => this.attachedBehaviours.Remove(behaviour);
+			// TODO Add behaviour registration
+			// this.behaviours.Add(, behaviour);
+			return behaviour;
+		}
+
+		private void OnDetailCreated(DetailObject obj)
         {
             if (this.DetailCreated != null)
                 this.DetailCreated(this, new DetailEventArgs(obj));
@@ -227,5 +242,7 @@ namespace BlocksWorld
 
 
         public IReadOnlyList<DetailObject> Details { get { return this.details; } }
+
+		public IReadOnlyList<Behaviour> ActiveBehaviours { get { return this.attachedBehaviours; } }
     }
 }

@@ -16,7 +16,7 @@ namespace BlocksWorld
 	class Server : IPhraseSender
 	{
 		private TcpListener server;
-		private HashSet<Client> clients = new HashSet<Client>();
+		private HashSet<Player> clients = new HashSet<Player>();
 		private World world;
 		private volatile int clientIdCounter = 0;
 
@@ -28,30 +28,7 @@ namespace BlocksWorld
 
 		void Run()
 		{
-			this.world = new World();
-			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
-
-			var objA = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
-			objA.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
-			// obj.Interactions.Add("Knock");
-
-			var objB = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
-			objB.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
-			// obj.Interactions.Add("Knock");
-
-			var behavA = new FlipOverBehaviour();
-			behavA.Attach(objA);
-
-			var behavB = new FlipOverBehaviour();
-			behavB.Attach(objB);
-
-			var behavB1 = new ButtonBehaviour();
-			behavB1.Attach(objB);
-
-			// Connect the both behaviours
-			behavB1.Signals["clicked"].Connect(behavA.Slots["flip"]);
-
-			LoadWorld();
+			GenerateWorld();
 
 			this.server = new TcpListener(IPAddress.Any, 4523);
 			server.Start();
@@ -63,7 +40,10 @@ namespace BlocksWorld
 				double deltaTime = timer.Elapsed.TotalSeconds;
 				timer.Restart();
 
-				objB.Rotation += Vector3.UnitY * (float)deltaTime;
+				foreach (var behaviour in this.world.ActiveBehaviours)
+				{
+					behaviour.Update(deltaTime);
+				}
 
 				lock (this.clients)
 				{
@@ -75,6 +55,38 @@ namespace BlocksWorld
 				}
 				Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
 			}
+		}
+
+		private void GenerateWorld()
+		{
+			this.world = new World();
+			this.LoadWorld();
+			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
+
+			var objA = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
+			objA.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
+
+			var objB = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
+			objB.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
+
+			var behavA = this.world.CreateBehaviour<FlipOverBehaviour>();
+			behavA.Attach(objA);
+
+			var behavA1 = this.world.CreateBehaviour<ButtonBehaviour>();
+			behavA1.Attach(objA);
+
+			var behavB = this.world.CreateBehaviour<FlipOverBehaviour>();
+			behavB.Attach(objB);
+
+			var behavB1 = this.world.CreateBehaviour<ButtonBehaviour>();
+			behavB1.Attach(objB);
+
+			var behavB2 = this.world.CreateBehaviour<RotationBehaviour>();
+			behavB2.Attach(objB);
+
+			// Connect the both behaviours
+			behavB1.Signals["clicked"].Connect(behavA.Slots["flip"]);
+			behavA1.Signals["clicked"].Connect(behavB2.Slots["toggle"]);
 		}
 
 		private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)
@@ -119,7 +131,7 @@ namespace BlocksWorld
 		private void EndAccept(IAsyncResult ar)
 		{
 			var tcp = this.server.EndAcceptTcpClient(ar);
-			var client = new Client(this, tcp, ++clientIdCounter);
+			var client = new Player(this, tcp, ++clientIdCounter);
 
 			lock (this.clients)
 			{
@@ -145,7 +157,7 @@ namespace BlocksWorld
 			}
 		}
 
-		public IEnumerable<Client> Clients
+		public IEnumerable<Player> Clients
 		{
 			get
 			{

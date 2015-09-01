@@ -72,7 +72,7 @@ namespace BlocksWorld
             }
         }
 
-        public void Save(Stream fs)
+		public void Save(Stream fs)
         {
             this.Save(fs, false);
         }

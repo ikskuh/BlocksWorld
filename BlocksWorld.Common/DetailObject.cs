@@ -34,17 +34,17 @@ namespace BlocksWorld
             };
         }
 
-		private void Item_Triggered(object sender, EventArgs e)
+		private void Item_Triggered(object sender, ActorEventArgs e)
 		{
-			this.OnInteractionTriggered(sender as Interaction);
+			this.OnInteractionTriggered(sender as Interaction, e.Actor);
 		}
 
-		private void OnInteractionTriggered(Interaction interaction)
+		private void OnInteractionTriggered(Interaction interaction, IActor actor)
 		{
 			if (interaction == null)
 				return;
 			if (this.InteractionTriggered != null)
-				this.InteractionTriggered(this, new DetailInteractionEventArgs(this, interaction));
+				this.InteractionTriggered(this, new DetailInteractionEventArgs(this, interaction, actor));
         }
 
 		private void OnInteractonsChanged()
