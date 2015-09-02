@@ -100,7 +100,7 @@ namespace BlocksWorld
 				{
 					for (int z = 0; z < 32; z++)
 					{
-						this.World[x, 0, z] = new BasicBlock(2);
+						this.World[x, 0, z] = new BasicBlock(3);
 					}
 				}
 
@@ -111,7 +111,7 @@ namespace BlocksWorld
 					for (int y = 1; y < 4; y++)
 					{
 						if ((x != 16) || (y >= 3))
-							this.World[x, y, 8] = new BasicBlock(3);
+							this.World[x, y, 8] = new BasicBlock(2);
 					}
 				}
 			}

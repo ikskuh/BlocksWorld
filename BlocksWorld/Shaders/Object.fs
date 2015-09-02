@@ -15,4 +15,6 @@ void main()
 	float l = 0.4f + 0.6f * clamp(-dot(normal, light), 0.0f, 1.0f);
 
 	fragment = vec4(l,l,l,1.0f) * texture(uTextures, uv) * vec4(color, 1.0f);
+    if(fragment.a <= 0.5f)
+        discard;
 }

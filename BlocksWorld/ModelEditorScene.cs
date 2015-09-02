@@ -137,7 +137,7 @@ namespace BlocksWorld
                         Dock = DockStyle.Fill,
                         Minimum = 0,
                         Maximum = this.textures.Count - 1,
-                        Value = mesh.Texture,
+                        Value = Math.Min(this.textures.Count - 1, mesh.Texture),
                         Increment = 1,
                     };
 
@@ -253,7 +253,7 @@ namespace BlocksWorld
                 "BlocksWorld.Shaders.Object.fs");
 
             this.textures = TextureArray.LoadFromResource(
-                "BlocksWorld.Textures.Blocks.png");
+                "BlocksWorld.Textures.Models.png");
 
             this.debug.Load();
         }

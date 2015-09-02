@@ -27,7 +27,8 @@ namespace BlocksWorld
 
 		double totalTime = 0.0;
 		private Player player;
-		private TextureArray textures;
+		private TextureArray blockTextures;
+		private TextureArray modelTextures;
 
 		private Network network;
 		private BasicReceiver receiver;
@@ -298,7 +299,10 @@ namespace BlocksWorld
 				"BlocksWorld.Shaders.Object.vs",
 				"BlocksWorld.Shaders.Object.fs");
 
-			this.textures = TextureArray.LoadFromResource("BlocksWorld.Textures.Blocks.png");
+			this.blockTextures = TextureArray.LoadFromResource(
+				"BlocksWorld.Textures.Blocks.png");
+			this.modelTextures = TextureArray.LoadFromResource(
+				"BlocksWorld.Textures.Models.png");
 
 			this.playerModel = MeshModel.LoadFromResource(
 				"BlocksWorld.Models.Player.bwm");
@@ -440,9 +444,12 @@ namespace BlocksWorld
 				GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
 				GL.ActiveTexture(TextureUnit.Texture0);
-				GL.BindTexture(TextureTarget.Texture2DArray, this.textures.ID);
+				GL.BindTexture(TextureTarget.Texture2DArray, this.blockTextures.ID);
 
 				this.renderer.Render(cam, time);
+				
+				GL.ActiveTexture(TextureUnit.Texture0);
+				GL.BindTexture(TextureTarget.Texture2DArray, this.modelTextures.ID);
 
 				foreach (var detail in this.world.Details)
 				{
@@ -528,7 +535,7 @@ namespace BlocksWorld
 			this.renderer?.Dispose();
 			foreach (var model in this.models.Values)
 				model.Dispose();
-			this.textures?.Dispose();
+			this.blockTextures?.Dispose();
 			base.Dispose(disposing);
 		}
 

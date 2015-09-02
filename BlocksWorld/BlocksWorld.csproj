@@ -138,6 +138,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Textures\UI.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Textures\Models.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /s /y "$(SolutionDir)packages\NLua.1.3.2.1\lib\native\*.*" "$(TargetDir)"</PostBuildEvent>
