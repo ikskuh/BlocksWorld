@@ -40,9 +40,9 @@ namespace BlocksWorld
 				double deltaTime = timer.Elapsed.TotalSeconds;
 				timer.Restart();
 
-				foreach (var behaviour in this.world.ActiveBehaviours)
+				foreach (var detail in this.world.Details)
 				{
-					behaviour.Update(deltaTime);
+					detail.Update(deltaTime);
 				}
 
 				lock (this.clients)
@@ -69,24 +69,18 @@ namespace BlocksWorld
 			var objB = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
 			objB.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
 
-			var behavA = this.world.CreateBehaviour<FlipOverBehaviour>();
-			behavA.Attach(objA);
+			var behavA = objA.CreateBehaviour<FlipOverBehaviour>();
+			var behavA1 = objA.CreateBehaviour<ButtonBehaviour>();
+			var behavA2 = objA.CreateBehaviour<ButtonBehaviour>();
 
-			var behavA1 = this.world.CreateBehaviour<ButtonBehaviour>();
-			behavA1.Attach(objA);
-
-			var behavB = this.world.CreateBehaviour<FlipOverBehaviour>();
-			behavB.Attach(objB);
-
-			var behavB1 = this.world.CreateBehaviour<ButtonBehaviour>();
-			behavB1.Attach(objB);
-
-			var behavB2 = this.world.CreateBehaviour<RotationBehaviour>();
-			behavB2.Attach(objB);
+			var behavB = objB.CreateBehaviour<FlipOverBehaviour>();
+			var behavB1 = objB.CreateBehaviour<ButtonBehaviour>();
+			var behavB2 = objB.CreateBehaviour<RotationBehaviour>();
 
 			// Connect the both behaviours
 			behavB1.Signals["clicked"].Connect(behavA.Slots["flip"]);
 			behavA1.Signals["clicked"].Connect(behavB2.Slots["toggle"]);
+			behavA2.Signals["clicked"].Connect(behavB1.Slots["toggle"]);
 		}
 
 		private void World_DetailInterationTriggered(object sender, DetailInteractionEventArgs e)

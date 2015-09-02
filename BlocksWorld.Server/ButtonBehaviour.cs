@@ -11,17 +11,17 @@ namespace BlocksWorld
 		{
 			this.button = this.CreateSignal("clicked");
 
-			this.Attached += ButtonBehaviour_Attached;
-			this.Detached += ButtonBehaviour_Detached;
+			this.Enabled += ButtonBehaviour_Enabled;
+			this.Disabled += ButtonBehaviour_Disabled;
 		}
 
-		private void ButtonBehaviour_Attached(object sender, DetailEventArgs e)
+		private void ButtonBehaviour_Enabled(object sender, EventArgs e)
 		{
 			this.interaction = new Interaction("Push Button", Button_Triggered);
 			this.Detail.Interactions.Add(this.interaction);
 		}
 
-		private void ButtonBehaviour_Detached(object sender, DetailEventArgs e)
+		private void ButtonBehaviour_Disabled(object sender, EventArgs e)
 		{
 			this.Detail.Interactions.Remove(this.interaction);
 		}

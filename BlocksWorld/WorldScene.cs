@@ -318,10 +318,10 @@ namespace BlocksWorld
 			foreach (var proxy in this.proxies)
 				proxy.Value.UpdateFrame(input, time);
 
-			if (input.GetButtonDown(Key.Number1) && (this.currentTool > 0))
-				this.currentTool -= 1;
-			if (input.GetButtonDown(Key.Number2) && (this.currentTool < (this.tools.Count - 1)))
-				this.currentTool += 1;
+			if (input.GetButtonDown(Key.Q))
+			{
+				this.currentTool = (this.currentTool + 1) % this.tools.Count;
+			}
 
 			if (this.player != null)
 			{
@@ -373,10 +373,9 @@ namespace BlocksWorld
 					int c = this.selectedDetail.Interactions.Count;
 					if (c > 1)
 					{
-						if (input.MouseWheel < 0)
-							this.selectedDetailInteraction -= 1;
-
 						if (input.MouseWheel > 0)
+							this.selectedDetailInteraction -= 1;
+						if (input.MouseWheel < 0)
 							this.selectedDetailInteraction += 1;
 
 						while (this.selectedDetailInteraction < 0)
@@ -399,9 +398,6 @@ namespace BlocksWorld
 			{
 				this.world.Step((float)time, true);
 			}
-
-			if (input.GetButtonDown(Key.F5))
-				this.world.Save("world.dat");
 
 			this.networkUpdateCounter++;
 			if (this.networkUpdateCounter > 5)

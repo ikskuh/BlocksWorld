@@ -9,18 +9,21 @@ namespace BlocksWorld
 {
 	public abstract class Behaviour
 	{
-		private DetailObject detail;
+		internal DetailObject detail;
+		private bool isEnabled = false;
 		private Dictionary<string, Signal> signals = new Dictionary<string, Signal>();
 		private Dictionary<string, Slot> slots = new Dictionary<string, Slot>();
 
-		public event EventHandler<DetailEventArgs> Attached;
-		public event EventHandler<DetailEventArgs> Detached;
+		public event EventHandler Enabled;
+		public event EventHandler Disabled;
 		public event EventHandler<FrameEventArgs> Updated;
 
 		protected Behaviour()
 		{
-
-        }
+			this.CreateSlot("enable", (s, e) => this.IsEnabled = true);
+			this.CreateSlot("disable", (s, e) => this.IsEnabled = false);
+			this.CreateSlot("toggle", (s, e) => this.IsEnabled ^= true);
+		}
 
 		protected Signal CreateSignal(string name)
 		{
@@ -43,24 +46,6 @@ namespace BlocksWorld
 			return slot;
 		}
 
-		public void Attach(DetailObject detail)
-		{
-			if (detail == null)
-				throw new ArgumentNullException("detail");
-			if (this.World == null)
-				throw new InvalidOperationException("Invalid behaviour: Not created via World.CreateBehaviour");
-			if (this.detail != null)
-				throw new InvalidOperationException("Cannot attach an already attached behaviour.");
-			this.detail = detail;
-			this.OnAttach(this.detail);
-		}
-
-		public void Detach()
-		{
-			this.OnDetach(this.detail);
-			this.detail = null;
-		}
-
 		/// <summary>
 		/// Calls the event Updated. Should be overhauled into a better solution.
 		/// </summary>
@@ -69,20 +54,22 @@ namespace BlocksWorld
 		{
 			if (deltaTime <= 0.0)
 				return;
+			if (this.IsEnabled == false)
+				return;
 			if (this.Updated != null)
 				this.Updated(this, new FrameEventArgs(deltaTime));
 		}
 
-		protected virtual void OnAttach(DetailObject detail)
+		private void OnEnabled()
 		{
-			if (this.Attached != null)
-				this.Attached(this, new DetailEventArgs(detail));
+			if (this.Enabled != null)
+				this.Enabled(this, EventArgs.Empty);
 		}
 
-		protected virtual void OnDetach(DetailObject detail)
+		private void OnDisabled()
 		{
-			if (this.Detached != null)
-				this.Detached(this, new DetailEventArgs(detail));
+			if (this.Disabled != null)
+				this.Disabled(this, EventArgs.Empty);
 		}
 
 		public DetailObject Detail { get { return this.detail; } }
@@ -94,5 +81,21 @@ namespace BlocksWorld
 		public IReadOnlyDictionary<string, Slot> Slots { get { return this.slots; } }
 
 		public World World { get; internal set; }
+		public int ID { get; internal set; }
+
+		public bool IsEnabled
+		{
+			get { return this.isEnabled; }
+			set
+			{
+				if (this.isEnabled == value)
+					return;
+				this.isEnabled = value;
+				if (this.isEnabled)
+					this.OnEnabled();
+				else
+					this.OnDisabled();
+			}
+		}
 	}
 }

@@ -11,24 +11,23 @@ namespace BlocksWorld
 		{
 			this.flip = this.CreateSlot("flip", (s, e) => this.FlipTable());
 
-			this.Attached += FlipOverBehaviour_Attached;
-			this.Detached += FlipOverBehaviour_Detached;
+			this.Enabled += FlipOverBehaviour_Enabled;
+			this.Disabled += FlipOverBehaviour_Disabled;
 		}
 
-		private void FlipOverBehaviour_Attached(object sender, DetailEventArgs e)
+		private void FlipOverBehaviour_Enabled(object sender, EventArgs e)
 		{
 			this.interaction = new Interaction("Flip Over", (s, _) => this.FlipTable());
 			this.Detail.Interactions.Add(this.interaction);
 		}
 
-		private void FlipOverBehaviour_Detached(object sender, DetailEventArgs e)
+		private void FlipOverBehaviour_Disabled(object sender, EventArgs e)
 		{
 			this.Detail.Interactions.Remove(this.interaction);
 		}
 
 		private void FlipTable()
 		{
-
 			var rot = this.Detail.Rotation;
 			rot.X += this.Rotation;
 			this.Detail.Rotation = rot;

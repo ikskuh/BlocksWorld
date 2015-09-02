@@ -58,6 +58,7 @@
     <Compile Include="BasicBlock.cs" />
     <Compile Include="BasicReceiver.cs" />
     <Compile Include="Behaviour.cs" />
+    <Compile Include="BehaviourEventArgs.cs" />
     <Compile Include="Block.cs" />
     <Compile Include="Block.Templates.cs" />
     <Compile Include="BlockEventArgs.cs" />
