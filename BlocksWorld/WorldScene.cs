@@ -19,7 +19,7 @@ namespace BlocksWorld
 	public sealed class WorldScene : Scene, IInteractiveEnvironment
 	{
 		World world;
-		WorldRenderer renderer;
+		WorldRenderer worldRenderer;
 		UIRenderer ui;
 		DebugRenderer debug;
 
@@ -58,7 +58,7 @@ namespace BlocksWorld
 			this.world = new World();
 			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
 			this.debug = new DebugRenderer();
-			this.renderer = new WorldRenderer(this.world);
+			this.worldRenderer = new WorldRenderer(this.world);
 
 			using (var stream = typeof(WorldScene).Assembly.GetManifestResourceStream("BlocksWorld.Textures.UI.png"))
 			{
@@ -308,7 +308,7 @@ namespace BlocksWorld
 				"BlocksWorld.Models.Player.bwm");
 
 			this.debug.Load();
-			this.renderer.Load();
+			this.worldRenderer.Load();
 			this.ui.Load();
 		}
 
@@ -391,9 +391,12 @@ namespace BlocksWorld
 					// Detail interaction with Key.E
 					if (input.GetButtonDown(Key.E))
 					{
-						this.Server.TriggerInteraction(
-							this.selectedDetail, 
-							this.selectedDetail.Interactions[this.selectedDetailInteraction]);
+						if (this.selectedDetail.Interactions.Count > 0)
+						{
+							this.Server.TriggerInteraction(
+								this.selectedDetail,
+								this.selectedDetail.Interactions[this.selectedDetailInteraction]);
+						}
 					}
 				}
 
@@ -444,12 +447,12 @@ namespace BlocksWorld
 				GL.UniformMatrix4(this.objectShader["uWorldViewProjection"], false, ref worldViewProjection);
 
 				GL.ActiveTexture(TextureUnit.Texture0);
-				GL.BindTexture(TextureTarget.Texture2DArray, this.blockTextures.ID);
+				GL.BindTexture(this.blockTextures.Target, this.blockTextures.ID);
 
-				this.renderer.Render(cam, time);
+				this.worldRenderer.Render(cam, time);
 				
 				GL.ActiveTexture(TextureUnit.Texture0);
-				GL.BindTexture(TextureTarget.Texture2DArray, this.modelTextures.ID);
+				GL.BindTexture(this.modelTextures.Target, this.modelTextures.ID);
 
 				foreach (var detail in this.world.Details)
 				{
@@ -472,14 +475,6 @@ namespace BlocksWorld
 			{
 				body.DebugDraw(this.debug);
 			}
-
-			/*
-            if (this.focus != null)
-            {
-                this.debug.DrawPoint(this.focus.Position);
-                this.debug.DrawLine(this.focus.Position, this.focus.Position + 0.25f * this.focus.Normal);
-            }
-            */
 
 			this.debug.Render(cam, time);
 
@@ -532,10 +527,11 @@ namespace BlocksWorld
 			this.playerModel?.Dispose();
 			this.ui?.Dispose();
 			this.debug?.Dispose();
-			this.renderer?.Dispose();
+			this.worldRenderer?.Dispose();
 			foreach (var model in this.models.Values)
 				model.Dispose();
 			this.blockTextures?.Dispose();
+			this.modelTextures?.Dispose();
 			base.Dispose(disposing);
 		}
 

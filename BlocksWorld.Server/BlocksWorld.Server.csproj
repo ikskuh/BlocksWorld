@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ButtonBehaviour.cs" />
+    <Compile Include="DoorBehaviour.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="FlipOverBehaviour.cs" />
     <Compile Include="RotationBehaviour.cs" />

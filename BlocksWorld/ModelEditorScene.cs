@@ -98,6 +98,13 @@ namespace BlocksWorld
             {
                 this.model.Serialize(fs);
             }
+
+			MessageBox.Show(
+				this.form,
+				"Model saved",
+				this.form.Text,
+				MessageBoxButtons.OK,
+				MessageBoxIcon.Information);
         }
 
         private void InitializeModelUI(MeshModel model)
@@ -119,88 +126,139 @@ namespace BlocksWorld
                     Dock = DockStyle.Fill
                 };
                 table.ColumnCount = 2;
-                table.RowCount = 3;
+                table.RowCount = 1;
                 table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 0.5f));
                 table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 0.5f));
 
-                // Texture Editor
-                {
-                    var label = new Label()
-                    {
-                        Dock = DockStyle.Fill,
-                        AutoSize = false,
-                        TextAlign = ContentAlignment.MiddleLeft,
-                        Text = "Texture:"
-                    };
-                    var editor = new NumericUpDown()
-                    {
-                        Dock = DockStyle.Fill,
-                        Minimum = 0,
-                        Maximum = this.textures.Count - 1,
-                        Value = Math.Min(this.textures.Count - 1, mesh.Texture),
-                        Increment = 1,
-                    };
+				Action<Func<Tuple<string, Control>>> addRow = (func) =>
+				{
+					var row = func();
+					
+					var label = new Label()
+					{
+						Dock = DockStyle.Fill,
+						AutoSize = false,
+						TextAlign = ContentAlignment.MiddleLeft,
+						Text = row.Item1
+					};
 
-                    editor.ValueChanged += (s, e) =>
-                    {
-                        mesh.SetTexture((int)editor.Value);
-                    };
+					table.Controls.Add(label);
+					table.Controls.Add(row.Item2);
 
-                    table.Controls.Add(label);
-                    table.Controls.Add(editor);
+					table.SetCellPosition(label, new TableLayoutPanelCellPosition(0, table.RowCount-1));
+					table.SetCellPosition(row.Item2, new TableLayoutPanelCellPosition(1, table.RowCount - 1));
 
-                    table.SetCellPosition(label, new TableLayoutPanelCellPosition(0, 0));
-                    table.SetCellPosition(editor, new TableLayoutPanelCellPosition(1, 0));
+					table.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
 
-                    table.RowStyles.Add(new RowStyle(SizeType.Absolute, editor.Height + 2));
-                }
-                // Scale tool
-                {
-                    var label = new Label()
-                    {
-                        Dock = DockStyle.Fill,
-                        AutoSize = false,
-                        TextAlign = ContentAlignment.MiddleLeft,
-                        Text = "Texture:"
-                    };
-                    var editor = new TextBox()
-                    {
-                        Dock = DockStyle.Fill,
-                        Text = "1.0"
-                    };
-                    var button = new Button()
-                    {
-                        Text = "Scale",
-                        Dock = DockStyle.Right
-                    };
-                    var panel = new Panel()
-                    {
-                        Dock = DockStyle.Fill
-                    };
+					table.RowCount += 1;
+				};
 
-                    button.Click += (s, e) =>
-                    {
-                        float scale = float.Parse(editor.Text, CultureInfo.InvariantCulture);
-                        for (int j = 0; j < mesh.Vertices.Length; j++)
-                        {
-                            mesh.Vertices[j].position *= scale;
-                        }
-                        mesh.Update();
-                    };
+				// Texture Editor
+				addRow(() =>
+				{
+					var editor = new NumericUpDown()
+					{
+						Dock = DockStyle.Fill,
+						Minimum = 0,
+						Maximum = this.textures.Count - 1,
+						Value = Math.Min(this.textures.Count - 1, mesh.Texture),
+						Increment = 1,
+					};
+					editor.ValueChanged += (s, e) =>
+					{
+						mesh.SetTexture((int)editor.Value);
+					};
+					return new Tuple<string, Control>("Texture:", editor);
+				});
 
-                    panel.Controls.Add(editor);
-                    panel.Controls.Add(button);
+				// Scale tool
+				addRow(() =>
+				{
+					var editor = new TextBox()
+					{
+						Dock = DockStyle.Fill,
+						Text = "1.0"
+					};
+					var button = new Button()
+					{
+						Text = "Scale",
+						Dock = DockStyle.Right
+					};
 
-                    table.Controls.Add(label);
-                    table.Controls.Add(panel);
+					button.Click += (s, e) =>
+					{
+						float scale = float.Parse(editor.Text, CultureInfo.InvariantCulture);
+						for (int j = 0; j < mesh.Vertices.Length; j++)
+						{
+							mesh.Vertices[j].position *= scale;
+						}
+						mesh.Update();
+					};
 
-                    table.SetCellPosition(label, new TableLayoutPanelCellPosition(0, 1));
-                    table.SetCellPosition(panel, new TableLayoutPanelCellPosition(1, 1));
 
-                    table.RowStyles.Add(new RowStyle(SizeType.Absolute, editor.Height + 2));
-                }
+					var panel = new Panel()
+					{
+						Dock = DockStyle.Fill,
+						Height = 24
+					};
+					panel.Controls.Add(editor);
+					panel.Controls.Add(button);
 
-                box.Controls.Add(table);
+					return new Tuple<string, Control>("Scale:", panel);
+				});
+
+
+				// Translate tool
+				addRow(() =>
+				{
+					Func<Vector3, EventHandler> rotateMesh = (angle) =>
+					{
+						return (s, e) =>
+						{
+							Matrix4 mat =
+								Matrix4.CreateRotationX(angle.X) *
+								Matrix4.CreateRotationY(angle.Y) *
+								Matrix4.CreateRotationZ(angle.Z);
+                            for (int j = 0; j < mesh.Vertices.Length; j++)
+							{
+								mesh.Vertices[j].position = Vector3.Transform(mesh.Vertices[j].position, mat);
+                            }
+							mesh.Update();
+						};
+					};
+
+					var panel = new Panel()
+					{
+						Dock = DockStyle.Fill,
+						Height = 28
+					};
+
+					Action<string, Vector3> addButton = (text, rot) =>
+					{
+						var button = new Button()
+						{
+							Text = text,
+							Dock = DockStyle.Left,
+							Width = 32
+						};
+						button.Click += rotateMesh(rot);
+						panel.Controls.Add(button);
+					};
+
+					addButton("Z⤴",  0.5f * (float)Math.PI * Vector3.UnitX);
+					addButton("Z⤵", -0.5f * (float)Math.PI * Vector3.UnitX);
+
+					addButton("Y⤴",  0.5f * (float)Math.PI * Vector3.UnitY);
+					addButton("Y⤵", -0.5f * (float)Math.PI * Vector3.UnitY);
+
+					addButton("Z⤴",  0.5f * (float)Math.PI * Vector3.UnitZ);
+					addButton("Z⤵", -0.5f * (float)Math.PI * Vector3.UnitZ);
+
+
+					return new Tuple<string, Control>("Transform:", panel);
+				});
+
+				box.Controls.Add(table);
                 this.modelData.Controls.Add(box);
             }
         }

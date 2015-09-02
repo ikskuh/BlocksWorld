@@ -33,6 +33,9 @@ namespace TexturePacker
 					if (bmp == null)
 						continue;
 
+					// Adjust to OpenGL texture format
+					bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
 					frames.Add(id, bmp);
 					max = Math.Max(max, id);
 				}

@@ -21,7 +21,7 @@ namespace BlocksWorld
             if (focus == null)
                 return;
 
-            this.Server.CreateNewDetail("palette", focus.Position.TK());
+            this.Server.CreateNewDetail("door", focus.Position.TK());
         }
 
         public override void SecondaryUse(Vector3 origin, Vector3 direction)

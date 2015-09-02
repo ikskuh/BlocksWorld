@@ -104,6 +104,9 @@ namespace BlocksWorld
             var pos = reader.ReadVector3();
 
             var obj = this.server.World.CreateDetail(model, pos);
+
+			// TODO: Some better way... :P
+			obj.CreateBehaviour<DoorBehaviour>();
         }
 
         private void SetPlayer(BinaryReader reader)

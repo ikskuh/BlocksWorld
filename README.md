@@ -31,6 +31,10 @@ The Play Mode provides the actual game mechanics and allows players to play a Sc
 - Unlimited Block World
  - Expandable in every direction
  - Sparse Storage (only blocks that exist are stored)
+ - Detail Objects
+  - Have Behaviours
+  - Have Interactions
+  - Have a single model
 - Multiplayer
  - Synchronized Players
  - Synchronized Blocks
@@ -43,6 +47,7 @@ The Play Mode provides the actual game mechanics and allows players to play a Sc
  - Model Adjustment
   - Edit Mesh Texture
   - Edit Mesh Size
+  - Rotate Mesh
 
 ## Todo List
 This list contains items that will be short term as well as long term plans
@@ -52,11 +57,12 @@ This list contains items that will be short term as well as long term plans
 - think about Lua script api
 - add shapes to DetailObjects
 - add detail editor tool
+- add sub-details
 - detail object classes
  - long term: class/object editor
 - primitive forward lighting
  - long term: deferred renderer
-- add translate/rotate options to model editor
+- add translate options to model editor
 - add model browser
 - add primitive UI rendering with System.Drawing and Texture2D (y)
  - long term: Improved UI system

@@ -100,20 +100,20 @@
     <Compile Include="WorldScene.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Resources\palette.bwm">
-      <Link>Models\palette.bwm</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\Resources\table_a.bwm">
-      <Link>Models\table_a.bwm</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\Resources\table_b.bwm">
-      <Link>Models\table_b.bwm</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="App.config" />
     <EmbeddedResource Include="Models\Player.bwm" />
+    <None Include="Models\door.bwm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Models\palette.bwm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Models\table_a.bwm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Models\table_b.bwm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
