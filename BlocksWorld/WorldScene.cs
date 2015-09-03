@@ -212,9 +212,21 @@ namespace BlocksWorld
 			var pos = reader.ReadVector3();
 			var rot = reader.ReadVector3();
 
+			Shape shape = null;
+			bool hasShape = reader.ReadBoolean();
+			if(hasShape == true)
+			{
+				var shapePos = reader.ReadVector3();
+				var shapeSize = reader.ReadVector3();
+
+				shape = DetailHelper.CreateShape(
+					shapePos,
+					shapeSize);
+			}
+
 			var parent = this.world.GetDetail(parentID);
 
-			DetailObject obj = new DetailObject(parent, id);
+			DetailObject obj = new DetailObject(parent, id, shape);
 			obj.Position = pos;
 			obj.Rotation = rot;
 			obj.Model = model.Length > 0 ? model : null;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
+using Jitter.Collision.Shapes;
 
 namespace BlocksWorld
 {
@@ -67,6 +68,8 @@ namespace BlocksWorld
         {
             this.sender.Send(NetworkPhrase.CreateDetail, (s) =>
             {
+				bool hasShape = detail.Shape != null;
+
                 s.Write(detail.ID);
 				if (detail.Parent != null)
 					s.Write(detail.Parent.ID);
@@ -75,6 +78,15 @@ namespace BlocksWorld
                 s.Write(detail.Model ?? "");
                 s.Write(detail.Position);
                 s.Write(detail.Rotation);
+				s.Write(hasShape);
+				if(hasShape == true)
+				{
+					var compound = (CompoundShape)detail.Shape;
+					var shape = compound.Shapes.First();
+
+					s.Write(shape.Position.TK());
+					s.Write(((BoxShape)shape.Shape).Size.TK());
+				}
             });
         }
 

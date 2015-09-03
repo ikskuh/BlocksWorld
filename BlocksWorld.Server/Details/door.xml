@@ -1,10 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <detail>
 	<model>door-frame</model>
+	
+	<!-- The door itself -->
 	<sub-detail>
 		<model>door</model>
 		<position>0.0;0.0;0.0</position>
-		<rotation>0;90;0</rotation>
+		<rotation>0;90;0</rotation>Size
+		
+		<shape>
+			<position>0;1.0;0</position>
+			<size>1.0;2.0;0.1</size>
+		</shape>
+		
+		<!-- The door behaviour for a rotating door -->
 		<behaviour>
 			<class>BlocksWorld.DoorBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>
 			<slot name="open-close">
@@ -12,8 +21,12 @@
 				<signal>clicked</signal>
 			</slot>
 		</behaviour>
+		
+		<!-- The door knob for interaction -->
 		<sub-detail>
 			<position>0.9;1.2;0.0</position>
+			
+			<!-- The button behaviour for rotating the door -->
 			<behaviour id="door-knob">
 				<class>BlocksWorld.ButtonBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>
 			</behaviour>

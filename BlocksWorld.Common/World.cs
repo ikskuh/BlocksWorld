@@ -59,27 +59,31 @@ namespace BlocksWorld
 			obj.InteractionTriggered += Obj_InterationTriggered;
 			this.details.Add(obj);
 
-			var body = new RigidBody(new BoxShape(1.0f, 0.2f, 1.5f));
-			body.Position = obj.WorldPosition.Jitter();
-			body.Orientation =
-				JMatrix.CreateRotationX(obj.Rotation.X) *
-				JMatrix.CreateRotationY(obj.Rotation.Y) *
-				JMatrix.CreateRotationZ(obj.Rotation.Z);
-			body.IsStatic = true;
-			body.Tag = obj;
-			body.Material = this.blockMaterial;
-			this.detailBodies.Add(obj.ID, body);
-
-			this.AddBody(body);
-
-			obj.Changed += (s, e) =>
+			if (obj.Shape != null)
 			{
+				var body = new RigidBody(obj.Shape);
 				body.Position = obj.WorldPosition.Jitter();
 				body.Orientation =
 					JMatrix.CreateRotationX(obj.Rotation.X) *
 					JMatrix.CreateRotationY(obj.Rotation.Y) *
 					JMatrix.CreateRotationZ(obj.Rotation.Z);
-			};
+				body.IsStatic = true;
+				body.Tag = obj;
+				body.EnableDebugDraw = true;
+				body.Material = this.blockMaterial;
+				this.detailBodies.Add(obj.ID, body);
+
+				this.AddBody(body);
+
+				obj.Changed += (s, e) =>
+				{
+					body.Position = obj.WorldPosition.Jitter();
+					body.Orientation =
+						JMatrix.CreateRotationX(obj.Rotation.X) *
+						JMatrix.CreateRotationY(obj.Rotation.Y) *
+						JMatrix.CreateRotationZ(obj.Rotation.Z);
+				};
+			}
 
 			this.OnDetailCreated(obj);
 		}
@@ -109,7 +113,15 @@ namespace BlocksWorld
 			Vector3 pos = Vector3.Zero;
 			if (template.Position != null)
 				pos = template.GetPosition();
-			DetailObject root = this.CreateDetail(template.Model, pos, parent);
+			Shape shape = null;
+			if(template.Shape != null)
+			{
+				shape = DetailHelper.CreateShape(
+					template.Shape.GetPosition(),
+					template.Shape.GetSize());
+            }
+
+			DetailObject root = this.CreateDetail(template.Model, pos, parent, shape);
 			if (template.Rotation != null)
 				root.Rotation = template.GetRotation();
 
@@ -191,9 +203,9 @@ namespace BlocksWorld
 			return root;
 		}
 
-		public DetailObject CreateDetail(string model, Vector3 position, DetailObject parent = null)
+		public DetailObject CreateDetail(string model, Vector3 position, DetailObject parent = null, Shape shape = null)
 		{
-			var obj = new DetailObject(parent, ++this.detailCounter)
+			var obj = new DetailObject(parent, ++this.detailCounter, shape)
 			{
 				Model = model,
 				Position = position,

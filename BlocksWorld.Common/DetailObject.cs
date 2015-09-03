@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using Jitter.Collision.Shapes;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,11 +22,14 @@ namespace BlocksWorld
 		private ObservableCollection<Interaction> interactions = new ObservableCollection<Interaction>();
 
 		private Dictionary<int, Behaviour> behaviours = new Dictionary<int, Behaviour>();
-		private readonly DetailObject parent;
 
-		public DetailObject(DetailObject parent, int id)
+		private readonly DetailObject parent;
+		private readonly Shape shape;
+
+		public DetailObject(DetailObject parent, int id, Shape shape)
 		{
 			this.parent = parent;
+			this.shape = shape;
 			this.ID = id;
 			this.interactions.CollectionChanged += (s, e) =>
 			{
@@ -215,5 +219,7 @@ namespace BlocksWorld
 		}
 
 		public DetailObject Parent { get { return this.parent; } }
+
+		public Shape Shape { get { return this.shape; } }
 	}
 }

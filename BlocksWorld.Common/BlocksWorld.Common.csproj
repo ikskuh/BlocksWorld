@@ -65,6 +65,7 @@
     <Compile Include="BlockVertex.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="DetailEventArgs.cs" />
+    <Compile Include="DetailHelper.cs" />
     <Compile Include="DetailInteraction.cs" />
     <Compile Include="DetailObject.cs" />
     <Compile Include="DetailTemplate.cs" />
