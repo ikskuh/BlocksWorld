@@ -68,7 +68,11 @@ namespace BlocksWorld
             this.sender.Send(NetworkPhrase.CreateDetail, (s) =>
             {
                 s.Write(detail.ID);
-                s.Write(detail.Model);
+				if (detail.Parent != null)
+					s.Write(detail.Parent.ID);
+				else
+					s.Write(-1);
+                s.Write(detail.Model ?? "");
                 s.Write(detail.Position);
                 s.Write(detail.Rotation);
             });

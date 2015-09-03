@@ -67,6 +67,7 @@
     <Compile Include="DetailEventArgs.cs" />
     <Compile Include="DetailInteraction.cs" />
     <Compile Include="DetailObject.cs" />
+    <Compile Include="DetailTemplate.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IActor.cs" />
     <Compile Include="IGameInputDriver.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="TraceResult.cs" />
     <Compile Include="World.cs" />
     <Compile Include="World.IO.cs" />
+    <Compile Include="Xml.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

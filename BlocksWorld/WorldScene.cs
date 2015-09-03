@@ -135,7 +135,7 @@ namespace BlocksWorld
 			if (detail.Interactions.Count == 0)
 				return;
 
-			var screenSpace = this.player.Camera.WorldToScreen(detail.Position, this.Aspect);
+			var screenSpace = this.player.Camera.WorldToScreen(detail.WorldPosition, this.Aspect);
 			if ((screenSpace.Z < 0.0f) || (screenSpace.Z > 1.0f))
 				return;
 
@@ -206,15 +206,18 @@ namespace BlocksWorld
 		private void CreateDetail(BinaryReader reader)
 		{
 			int id = reader.ReadInt32();
+			int parentID = reader.ReadInt32();
 
 			string model = reader.ReadString();
 			var pos = reader.ReadVector3();
 			var rot = reader.ReadVector3();
 
-			DetailObject obj = new DetailObject(id);
+			var parent = this.world.GetDetail(parentID);
+
+			DetailObject obj = new DetailObject(parent, id);
 			obj.Position = pos;
 			obj.Rotation = rot;
-			obj.Model = model;
+			obj.Model = model.Length > 0 ? model : null;
 
 			this.world.RegisterDetail(obj);
 		}
@@ -340,7 +343,7 @@ namespace BlocksWorld
 				foreach (var detail in this.world.Details)
 				{
 					// Check for visibility with trace
-					var to = detail.Position;
+					var to = detail.WorldPosition;
 					var dir = (to - from).Normalized();
 
 					var hit = this.world.Trace(from.Jitter(), dir.Jitter(), TraceOptions.IgnoreDynamic);
@@ -348,7 +351,7 @@ namespace BlocksWorld
 					if ((hit != null) && ((hit.Body?.Tag as DetailObject) != detail))
 						continue;
 
-					var dist = (detail.Position - from).Length;
+					var dist = (detail.WorldPosition - from).Length;
 					if (dist > 3.5f) // TODO: Implement settings value
 						continue;
 
@@ -356,8 +359,8 @@ namespace BlocksWorld
 
 					if (this.selectedDetail != null)
 					{
-						var center = this.player.Camera.WorldToScreen(detail.Position, this.Aspect).Xy.Length;
-						var currentCenter = this.player.Camera.WorldToScreen(this.selectedDetail.Position, this.Aspect).Xy.Length;
+						var center = this.player.Camera.WorldToScreen(detail.WorldPosition, this.Aspect).Xy.Length;
+						var currentCenter = this.player.Camera.WorldToScreen(this.selectedDetail.WorldPosition, this.Aspect).Xy.Length;
 
 						if (currentCenter < center)
 							continue;
@@ -483,11 +486,7 @@ namespace BlocksWorld
 
 		private void RenderDetail(Camera cam, DetailObject detail, double time)
 		{
-			Matrix4 world =
-				Matrix4.CreateRotationX(detail.Rotation.X) *
-				Matrix4.CreateRotationY(detail.Rotation.Y) *
-				Matrix4.CreateRotationZ(detail.Rotation.Z) *
-				Matrix4.CreateTranslation(detail.Position);
+			Matrix4 world = detail.Transform;
 
 			Matrix4 worldViewProjection =
 				world *

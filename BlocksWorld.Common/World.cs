@@ -52,7 +52,7 @@ namespace BlocksWorld
 
 		public void RegisterDetail(DetailObject obj)
 		{
-			if (this.GetDetail(obj.ID) != null)
+			if (this.HasDetail(obj.ID))
 				throw new InvalidOperationException();
 
 			obj.Changed += Obj_Changed;
@@ -60,7 +60,7 @@ namespace BlocksWorld
 			this.details.Add(obj);
 
 			var body = new RigidBody(new BoxShape(1.0f, 0.2f, 1.5f));
-			body.Position = obj.Position.Jitter();
+			body.Position = obj.WorldPosition.Jitter();
 			body.Orientation =
 				JMatrix.CreateRotationX(obj.Rotation.X) *
 				JMatrix.CreateRotationY(obj.Rotation.Y) *
@@ -74,7 +74,7 @@ namespace BlocksWorld
 
 			obj.Changed += (s, e) =>
 			{
-				body.Position = obj.Position.Jitter();
+				body.Position = obj.WorldPosition.Jitter();
 				body.Orientation =
 					JMatrix.CreateRotationX(obj.Rotation.X) *
 					JMatrix.CreateRotationY(obj.Rotation.Y) *
@@ -100,12 +100,103 @@ namespace BlocksWorld
 			this.OnDetailChanged(sender as DetailObject);
 		}
 
-		public DetailObject CreateDetail(string model, Vector3 position)
+		private DetailObject CreateDetailInstance(
+			Dictionary<DetailTemplate, DetailObject> mapping,
+			Dictionary<BehaviourTemplate, Behaviour> behaviours,
+			DetailTemplate template,
+			DetailObject parent)
 		{
-			var obj = new DetailObject(++this.detailCounter)
+			Vector3 pos = Vector3.Zero;
+			if (template.Position != null)
+				pos = template.GetPosition();
+			DetailObject root = this.CreateDetail(template.Model, pos, parent);
+			if (template.Rotation != null)
+				root.Rotation = template.GetRotation();
+
+			if (template.Children != null)
+			{
+				foreach (var child in template.Children)
+				{
+					CreateDetailInstance(mapping, behaviours, child, root);
+				}
+			}
+			mapping.Add(template, root);
+
+			if (template.Behaviours != null)
+			{
+				foreach (var behav in template.Behaviours)
+				{
+					var type = Type.GetType(behav.Class);
+					if (type.IsSubclassOf(typeof(Behaviour)) == false)
+						throw new InvalidOperationException("Invalid behaviour type: " + behav.Class);
+					Behaviour behaviour = root.CreateBehaviour(type, true);
+					behaviours.Add(behav, behaviour);
+				}
+			}
+
+			return root;
+		}
+
+		private List<DetailTemplate> Flatten(DetailTemplate t, List<DetailTemplate> list = null)
+		{
+			list = list ?? new List<DetailTemplate>();
+			list.Add(t);
+
+			if (t.Children != null)
+			{
+				foreach (var child in t.Children)
+				{
+					Flatten(child, list);
+				}
+			}
+			return list;
+		}
+
+		public DetailObject CreateDetail(DetailTemplate template, Vector3 position)
+		{
+			var mapping = new Dictionary<DetailTemplate, DetailObject>();
+			var behaviours = new Dictionary<BehaviourTemplate, Behaviour>();
+			var root = this.CreateDetailInstance(
+				mapping,
+				behaviours,
+				template,
+				null);
+
+			// Connect behaviours
+			{
+				var namedBehaviours = new Dictionary<string, Behaviour>();
+				foreach (var kv in behaviours)
+				{
+					if (kv.Key.ID != null)
+						namedBehaviours.Add(kv.Key.ID, kv.Value);
+				}
+				foreach (var kv in behaviours)
+				{
+					if (kv.Key.SlotConnections != null)
+					{
+						foreach (var con in kv.Key.SlotConnections)
+						{
+							var source = namedBehaviours[con.Source];
+							var signal = source.Signals[con.Signal];
+							var slot = kv.Value.Slots[con.Slot];
+
+							slot.ConnectTo(signal);
+						}
+					}
+				}
+			}
+
+			root.Position = position;
+
+			return root;
+		}
+
+		public DetailObject CreateDetail(string model, Vector3 position, DetailObject parent = null)
+		{
+			var obj = new DetailObject(parent, ++this.detailCounter)
 			{
 				Model = model,
-				Position = position
+				Position = position,
 			};
 
 			this.RegisterDetail(obj);
@@ -148,9 +239,21 @@ namespace BlocksWorld
 				this.DetailRemoved(this, new DetailEventArgs(obj));
 		}
 
+		/// <summary>
+		/// Gets the detail with the given id.
+		/// </summary>
+		/// <param name="id">The id of the detail to find.</param>
+		/// <returns>DetailObject with the id or null if id was -1</returns>
 		public DetailObject GetDetail(int id)
 		{
-			return this.details.FirstOrDefault(d => d.ID == id);
+			if (id == -1)
+				return null;
+			return this.details.First(d => d.ID == id);
+		}
+
+		private bool HasDetail(int id)
+		{
+			return this.details.Any(d => d.ID == id);
 		}
 
 		public Block this[int x, int y, int z]

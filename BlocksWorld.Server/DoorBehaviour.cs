@@ -14,6 +14,8 @@ namespace BlocksWorld
 		{
 			this.sigOpened = this.CreateSignal("opened");
 
+			this.CreateSlot("open-close", this.Door_OpenClose);
+
 			this.Enabled += DoorBehaviour_Enabled;
 			this.Disabled += DoorBehaviour_Disabled;
 			this.Updated += DoorBehaviour_Updated;
@@ -48,7 +50,7 @@ namespace BlocksWorld
 			this.Detail.Interactions.Remove(this.interaction);
 		}
 
-		private void Door_OpenClose(object sender, ActorEventArgs e)
+		private void Door_OpenClose(object sender, EventArgs e)
 		{
 			this.isOpen = !this.isOpen;
         }

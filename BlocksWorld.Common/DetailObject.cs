@@ -5,31 +5,33 @@ using System.Collections.ObjectModel;
 
 namespace BlocksWorld
 {
-    public class DetailObject
-    {
-        public event EventHandler Changed;
-        public event EventHandler InteractionsChanged;
+	public class DetailObject
+	{
+		public event EventHandler Changed;
+		public event EventHandler InteractionsChanged;
 		public event EventHandler<DetailInteractionEventArgs> InteractionTriggered;
-		
+
 		public event EventHandler<BehaviourEventArgs> BehaviourCreated;
 		public event EventHandler<BehaviourEventArgs> BehaviourChanged;
 		public event EventHandler<BehaviourEventArgs> BehaviourDestroyed;
 
 		private int lastBehaviourID = 0;
 		private Vector3 position;
-        private Vector3 rotation;
-        private ObservableCollection<Interaction> interactions = new ObservableCollection<Interaction>();
+		private Vector3 rotation;
+		private ObservableCollection<Interaction> interactions = new ObservableCollection<Interaction>();
 
 		private Dictionary<int, Behaviour> behaviours = new Dictionary<int, Behaviour>();
+		private readonly DetailObject parent;
 
-		public DetailObject(int id)
-        {
-            this.ID = id;
-            this.interactions.CollectionChanged += (s, e) =>
-            {
-				if(e.NewItems != null)
+		public DetailObject(DetailObject parent, int id)
+		{
+			this.parent = parent;
+			this.ID = id;
+			this.interactions.CollectionChanged += (s, e) =>
+			{
+				if (e.NewItems != null)
 				{
-					foreach(Interaction item in e.NewItems)
+					foreach (Interaction item in e.NewItems)
 						item.Triggered += Item_Triggered;
 				}
 				if (e.OldItems != null)
@@ -38,12 +40,12 @@ namespace BlocksWorld
 						item.Triggered -= Item_Triggered;
 				}
 				this.OnInteractonsChanged();
-            };
+			};
 		}
 
 		public void Update(double deltaTime)
 		{
-			foreach(var behaviour in this.behaviours.Values)
+			foreach (var behaviour in this.behaviours.Values)
 			{
 				behaviour.Update(deltaTime);
 			}
@@ -59,6 +61,24 @@ namespace BlocksWorld
 			where T : Behaviour, new()
 		{
 			var behaviour = new T();
+			return CreateBehaviour(behaviour, enabled) as T;
+		}
+
+		public Behaviour CreateBehaviour(Type type)
+		{
+			return this.CreateBehaviour(type, true);
+		}
+
+		public Behaviour CreateBehaviour(Type type, bool enabled)
+		{
+			var behaviour = Activator.CreateInstance(type) as Behaviour;
+			if (behaviour == null)
+				throw new InvalidOperationException(type.Name + " is not a Behaviour");
+			return CreateBehaviour(behaviour, enabled);
+		}
+
+		private Behaviour CreateBehaviour(Behaviour behaviour, bool enabled) 
+		{
 			behaviour.detail = this;
 			behaviour.ID = this.lastBehaviourID++;
 			this.behaviours.Add(behaviour.ID, behaviour);
@@ -106,61 +126,94 @@ namespace BlocksWorld
 				return;
 			if (this.InteractionTriggered != null)
 				this.InteractionTriggered(this, new DetailInteractionEventArgs(this, interaction, actor));
-        }
+		}
 
 		private void OnInteractonsChanged()
-        {
-            if (this.InteractionsChanged != null)
-                this.InteractionsChanged(this, EventArgs.Empty);
-        }
+		{
+			if (this.InteractionsChanged != null)
+				this.InteractionsChanged(this, EventArgs.Empty);
+		}
 
-        public int ID { get; private set; }
-        public string Model { get; set; }
+		public int ID { get; private set; }
+		public string Model { get; set; }
 
-        public Vector3 Rotation
-        {
-            get
-            {
-                return rotation;
-            }
+		public Vector3 Rotation
+		{
+			get
+			{
+				return rotation;
+			}
 
-            set
-            {
-                bool changed = (value - rotation).Length > 0.02f;
+			set
+			{
+				bool changed = (value - rotation).Length > 0.02f;
 				rotation = value;
-                if (changed)
-                    this.OnChanged();
-            }
-        }
+				if (changed)
+					this.OnChanged();
+			}
+		}
 
-        private void OnChanged()
-        {
-            if (this.Changed != null)
-                this.Changed(this, EventArgs.Empty);
-        }
+		private void OnChanged()
+		{
+			if (this.Changed != null)
+				this.Changed(this, EventArgs.Empty);
+		}
 
-        public Vector3 Position
-        {
-            get
-            {
-                return position;
-            }
+		public Vector3 Position
+		{
+			get
+			{
+				return position;
+			}
 
-            set
-            {
-                bool changed = (value - position).Length > 0.02f;
-                position = value;
-                if (changed)
-                    this.OnChanged();
-            }
-        }
+			set
+			{
+				bool changed = (value - position).Length > 0.02f;
+				position = value;
+				if (changed)
+					this.OnChanged();
+			}
+		}
 
-        public IList<Interaction> Interactions
-        {
-            get
-            {
-                return this.interactions;
-            }
-        }
+		public Vector3 WorldPosition
+		{
+			get
+			{
+				return Vector3.Transform(Vector3.Zero, this.Transform);
+			}
+		}
+
+		public Matrix4 LocalTransform
+		{
+			get
+			{
+				return 
+					Matrix4.CreateRotationX(this.Rotation.X) *
+					Matrix4.CreateRotationY(this.Rotation.Y) *
+					Matrix4.CreateRotationZ(this.Rotation.Z) *
+					Matrix4.CreateTranslation(this.Position);
+			}
+		}
+
+		public Matrix4 Transform
+		{
+			get
+			{
+				if (this.parent != null)
+					return this.LocalTransform * this.parent.Transform;
+				else
+					return this.LocalTransform;
+			}
+		}
+
+		public IList<Interaction> Interactions
+		{
+			get
+			{
+				return this.interactions;
+			}
+		}
+
+		public DetailObject Parent { get { return this.parent; } }
 	}
 }

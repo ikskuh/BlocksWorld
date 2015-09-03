@@ -28,7 +28,11 @@ namespace BlocksWorld
 
 		void Run()
 		{
+			var template = Xml.LoadFromFile<DetailTemplate>("./Details/door.xml");
+			
 			GenerateWorld();
+
+			var instance = this.world.CreateDetail(template, new Vector3(2, 1, 2));
 
 			this.server = new TcpListener(IPAddress.Any, 4523);
 			server.Start();
@@ -62,6 +66,8 @@ namespace BlocksWorld
 			this.world = new World();
 			this.LoadWorld();
 			this.world.DetailInterationTriggered += World_DetailInterationTriggered;
+
+			return;
 
 			var objA = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
 			objA.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);

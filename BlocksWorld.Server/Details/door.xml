@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<detail>
+	<model>door-frame</model>
+	<sub-detail>
+		<model>door</model>
+		<position>0.0;0.0;0.0</position>
+		<rotation>0;90;0</rotation>
+		<behaviour>
+			<class>BlocksWorld.DoorBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>
+			<slot name="open-close">
+				<behaviour>door-knob</behaviour>
+				<signal>clicked</signal>
+			</slot>
+		</behaviour>
+		<sub-detail>
+			<position>0.9;1.2;0.0</position>
+			<behaviour id="door-knob">
+				<class>BlocksWorld.ButtonBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>
+			</behaviour>
+		</sub-detail>
+	</sub-detail>
+</detail>

@@ -102,6 +102,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <EmbeddedResource Include="Models\Player.bwm" />
+    <None Include="Models\door-frame.bwm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Models\door.bwm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
