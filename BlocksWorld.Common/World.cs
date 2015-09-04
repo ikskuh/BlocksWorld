@@ -72,7 +72,7 @@ namespace BlocksWorld
 
 				this.AddBody(body);
 
-				obj.Changed += (s, e) =>
+				obj.PositionChanged += (s, e) =>
 				{
 					body.Position = obj.WorldPosition.Jitter();
 					body.Orientation = JMatrix.CreateFromQuaternion(obj.WorldRotation.Jitter());
@@ -110,9 +110,7 @@ namespace BlocksWorld
 			Shape shape = null;
 			if(template.Shape != null)
 			{
-				shape = DetailHelper.CreateShape(
-					template.Shape.GetPosition(),
-					template.Shape.GetSize());
+				shape = DetailHelper.CreateShape(template.Shape.GetSize());
             }
 
 			DetailObject root = this.CreateDetail(template.Model, pos, parent, shape);

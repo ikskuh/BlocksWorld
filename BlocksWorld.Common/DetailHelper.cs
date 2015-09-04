@@ -24,16 +24,9 @@ namespace BlocksWorld
 			return new Vector3(x, y, z);
 		}
 
-		public static Shape CreateShape(Vector3 pos, Vector3 size)
+		public static Shape CreateShape(Vector3 size)
 		{
-			var shapes = new[]
-				{
-					new CompoundShape.TransformedShape(
-						new BoxShape(size.Jitter()),
-						JMatrix.Identity,
-						pos.Jitter())
-				};
-			return new CompoundShape(shapes);
+			return new BoxShape(size.Jitter());
 		}
 	}
 }

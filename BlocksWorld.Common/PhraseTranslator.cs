@@ -81,11 +81,8 @@ namespace BlocksWorld
 				s.Write(hasShape);
 				if(hasShape == true)
 				{
-					var compound = (CompoundShape)detail.Shape;
-					var shape = compound.Shapes.First();
-
-					s.Write(shape.Position.TK());
-					s.Write(((BoxShape)shape.Shape).Size.TK());
+					var shape = (BoxShape)detail.Shape;
+					s.Write(shape.Size.TK());
 				}
             });
         }

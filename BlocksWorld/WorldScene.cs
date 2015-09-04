@@ -216,12 +216,8 @@ namespace BlocksWorld
 			bool hasShape = reader.ReadBoolean();
 			if(hasShape == true)
 			{
-				var shapePos = reader.ReadVector3();
 				var shapeSize = reader.ReadVector3();
-
-				shape = DetailHelper.CreateShape(
-					shapePos,
-					shapeSize);
+				shape = DetailHelper.CreateShape(shapeSize);
 			}
 
 			var parent = this.world.GetDetail(parentID);

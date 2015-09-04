@@ -9,6 +9,7 @@ namespace BlocksWorld
 	public class DetailObject
 	{
 		public event EventHandler Changed;
+		public event EventHandler PositionChanged;
 		public event EventHandler InteractionsChanged;
 		public event EventHandler<DetailInteractionEventArgs> InteractionTriggered;
 
@@ -45,6 +46,10 @@ namespace BlocksWorld
 				}
 				this.OnInteractonsChanged();
 			};
+			if(this.parent != null)
+			{
+				this.parent.PositionChanged += (s, e) => this.OnPositionChanged();
+			}
 		}
 
 		public void Update(double deltaTime)
@@ -81,7 +86,7 @@ namespace BlocksWorld
 			return CreateBehaviour(behaviour, enabled);
 		}
 
-		private Behaviour CreateBehaviour(Behaviour behaviour, bool enabled) 
+		private Behaviour CreateBehaviour(Behaviour behaviour, bool enabled)
 		{
 			behaviour.detail = this;
 			behaviour.ID = this.lastBehaviourID++;
@@ -150,10 +155,13 @@ namespace BlocksWorld
 
 			set
 			{
-				bool changed = (value - rotation).Length > 0.02;
+				bool changed = (value != rotation);
 				rotation = value;
 				if (changed)
+				{
 					this.OnChanged();
+					this.OnPositionChanged();
+				}
 			}
 		}
 
@@ -161,6 +169,12 @@ namespace BlocksWorld
 		{
 			if (this.Changed != null)
 				this.Changed(this, EventArgs.Empty);
+		}
+
+		private void OnPositionChanged()
+		{
+			if (this.PositionChanged != null)
+				this.PositionChanged(this, EventArgs.Empty);
 		}
 
 		public Vector3 Position
@@ -172,10 +186,13 @@ namespace BlocksWorld
 
 			set
 			{
-				bool changed = (value - position).Length > 0.02f;
+				bool changed = (value != position);
 				position = value;
 				if (changed)
+				{
 					this.OnChanged();
+					this.OnPositionChanged();
+				}
 			}
 		}
 
@@ -192,7 +209,7 @@ namespace BlocksWorld
 			get
 			{
 				if (this.parent != null)
-					return this.rotation * this.parent.rotation;
+					return this.parent.WorldRotation * this.rotation;
 				else
 					return this.rotation;
 			}
@@ -202,7 +219,7 @@ namespace BlocksWorld
 		{
 			get
 			{
-				return 
+				return
 					Matrix4.CreateFromQuaternion(this.rotation) *
 					Matrix4.CreateTranslation(this.position);
 			}

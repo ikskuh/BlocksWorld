@@ -8,11 +8,6 @@
 		<position>0.0;0.0;0.0</position>
 		<rotation>0;90;0</rotation>Size
 		
-		<shape>
-			<position>0;1.0;0</position>
-			<size>1.0;2.0;0.1</size>
-		</shape>
-		
 		<!-- The door behaviour for a rotating door -->
 		<behaviour>
 			<class>BlocksWorld.DoorBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>
@@ -22,10 +17,22 @@
 			</slot>
 		</behaviour>
 		
+		<!-- The door collider is offset -->
+		<sub-detail>
+			<position>0.5;1.0;0</position>
+			<shape>
+				<size>1.0;2.0;0.1</size>
+			</shape>
+		</sub-detail>
+	 	
 		<!-- The door knob for interaction -->
 		<sub-detail>
 			<position>0.9;1.2;0.0</position>
 			
+			<shape>
+				<size>0.2;0.2;0.3</size>
+			</shape>
+				
 			<!-- The button behaviour for rotating the door -->
 			<behaviour id="door-knob">
 				<class>BlocksWorld.ButtonBehaviour, BlocksWorld.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</class>

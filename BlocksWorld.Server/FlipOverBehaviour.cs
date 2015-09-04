@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 
 namespace BlocksWorld
 {
@@ -28,9 +29,7 @@ namespace BlocksWorld
 
 		private void FlipTable()
 		{
-			var rot = this.Detail.Rotation;
-			rot.X += this.Rotation;
-			this.Detail.Rotation = rot;
+			this.Detail.Rotation *= Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.Pi);
 		}
 
 		public float Rotation { get; set; } = (float)Math.PI;

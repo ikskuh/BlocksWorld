@@ -80,18 +80,8 @@ namespace BlocksWorld
 
 	public class ShapeTemplate
 	{
-		[XmlElement("position")]
-		public string Position { get; set; }
-
 		[XmlElement("size")]
 		public string Size { get; set; }
-
-		public Vector3 GetPosition()
-		{
-			if (this.Position == null)
-				throw new InvalidOperationException("Template has no position");
-			return DetailHelper.ParseVector3(this.Position);
-		}
 
 		public Vector3 GetSize()
 		{
