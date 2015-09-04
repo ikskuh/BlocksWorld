@@ -1,4 +1,4 @@
-# BlocksWorld
+﻿# BlocksWorld
 
 A small game focused on building stuff together.
 
@@ -35,6 +35,7 @@ The Play Mode provides the actual game mechanics and allows players to play a Sc
   - Have Behaviours
   - Have Interactions
   - Have a single model
+  - Can be defined via XML file
 - Multiplayer
  - Synchronized Players
  - Synchronized Blocks
@@ -53,18 +54,22 @@ The Play Mode provides the actual game mechanics and allows players to play a Sc
 This list contains items that will be short term as well as long term plans
 
 - physical detail objects
-- generic interaction system with multiple interactions (Key.E)
 - think about Lua script api
-- add shapes to DetailObjects
+- add shape other than box to DetailObjects
+ - sphere
+ - capsule
+ - cylinder
+ - cone
+ - mesh
+ - terrain
 - add detail editor tool
-- add sub-details
-- detail object classes
+- detail object classes ✓
  - long term: class/object editor
 - primitive forward lighting
  - long term: deferred renderer
 - add translate options to model editor
-- add model browser
-- add primitive UI rendering with System.Drawing and Texture2D (y)
+- add detail browser
+- add primitive UI rendering with System.Drawing and Texture2D ✓
  - long term: Improved UI system
  - UI skin system
 - game modes

@@ -48,7 +48,7 @@ namespace BlocksWorld
 		private Font largeFont;
 		private Image uiTextures;
 		private Font smallFont;
-		
+
 		private DetailObject selectedDetail;
 		private int selectedDetailInteraction;
 		private HashSet<DetailObject> visibleDetails = new HashSet<DetailObject>();
@@ -214,7 +214,7 @@ namespace BlocksWorld
 
 			Shape shape = null;
 			bool hasShape = reader.ReadBoolean();
-			if(hasShape == true)
+			if (hasShape == true)
 			{
 				var shapeSize = reader.ReadVector3();
 				shape = DetailHelper.CreateShape(shapeSize);
@@ -233,7 +233,8 @@ namespace BlocksWorld
 		private void DestroyDetail(BinaryReader reader)
 		{
 			int id = reader.ReadInt32();
-			this.world.RemoveDetail(id);
+			if (this.world.HasDetail(id))
+				this.world.RemoveDetail(id);
 		}
 
 		private void UpdateDetail(BinaryReader reader)
@@ -459,7 +460,7 @@ namespace BlocksWorld
 			};
 
 			Matrix4 world = Matrix4.Identity;
-            Matrix4 worldViewProjection =
+			Matrix4 worldViewProjection =
 				world *
 				cam.CreateViewMatrix() *
 				cam.CreateProjectionMatrix(this.Aspect);
@@ -475,7 +476,7 @@ namespace BlocksWorld
 				GL.BindTexture(this.blockTextures.Target, this.blockTextures.ID);
 
 				this.worldRenderer.Render(cam, time);
-				
+
 				GL.ActiveTexture(TextureUnit.Texture0);
 				GL.BindTexture(this.modelTextures.Target, this.modelTextures.ID);
 
@@ -531,7 +532,7 @@ namespace BlocksWorld
 				Matrix4.CreateRotationY(rotation) *
 				Matrix4.CreateTranslation(position);
 			Matrix4 worldViewProjection =
-				world * 
+				world *
 				cam.CreateViewMatrix() *
 				cam.CreateProjectionMatrix(this.Aspect);
 

@@ -21,7 +21,7 @@ namespace BlocksWorld
             if (focus == null)
                 return;
 
-            this.Server.CreateNewDetail("door", focus.Position.TK());
+            this.Server.SpawnDetail("door", focus.Position.TK());
         }
 
         public override void SecondaryUse(Vector3 origin, Vector3 direction)
@@ -30,6 +30,10 @@ namespace BlocksWorld
             var detail = focus?.Body?.Tag as DetailObject;
             if (detail == null)
                 return;
+			while(detail.Parent != null)
+			{
+				detail = detail.Parent;
+			}
             this.Server.DestroyDetail(detail);
         }
     }

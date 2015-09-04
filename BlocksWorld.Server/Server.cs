@@ -10,6 +10,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using OpenTK;
+using System.Text.RegularExpressions;
 
 namespace BlocksWorld
 {
@@ -28,11 +29,7 @@ namespace BlocksWorld
 
 		void Run()
 		{
-			var template = Xml.LoadFromFile<DetailTemplate>("./Details/door.xml");
-			
 			GenerateWorld();
-
-			var instance = this.world.CreateDetail(template, new Vector3(10.5f, 0.51f, 2.5f));
 
 			this.server = new TcpListener(IPAddress.Any, 4523);
 			server.Start();
@@ -147,6 +144,22 @@ namespace BlocksWorld
 			{
 				client.Network.Send(phrase, sender);
 			}
+		}
+
+		static readonly Regex regexCleanText = new Regex(@"[^A-Za-z0-9_ ]", RegexOptions.Compiled);
+		Dictionary<string, DetailTemplate> templates = new Dictionary<string, DetailTemplate>();
+
+		internal DetailTemplate GetPrefab(string model)
+		{
+			model = regexCleanText.Replace(model, "");
+
+			if (templates.ContainsKey(model) == false)
+			{
+				var template = Xml.LoadFromFile<DetailTemplate>("./Details/" + model + ".xml");
+				templates.Add(model, template);
+			}
+
+			return templates[model];
 		}
 
 		public World World

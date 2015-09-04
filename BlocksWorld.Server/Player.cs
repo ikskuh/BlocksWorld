@@ -27,7 +27,7 @@ namespace BlocksWorld
             this.receiver = new BasicReceiver(this.Network, this.server.World);
 
             this.network[NetworkPhrase.SetPlayer] = this.SetPlayer;
-            this.network[NetworkPhrase.CreateNewDetail] = this.CreateNewDetail;
+            this.network[NetworkPhrase.SpawnDetail] = this.SpawnDetail;
             this.network[NetworkPhrase.DestroyDetail] = this.DestroyDetail;
             this.network[NetworkPhrase.TriggerInteraction] = this.TriggerInteraction;
 
@@ -95,18 +95,23 @@ namespace BlocksWorld
         private void DestroyDetail(BinaryReader reader)
         {
             int id = reader.ReadInt32();
-            this.server.World.RemoveDetail(id);
+			var detail = this.server.World.GetDetail(id);
+
+			// Always destroy the most parent object
+			while (detail.Parent != null)
+				detail = detail.Parent;
+
+            this.server.World.RemoveDetail(detail.ID);
         }
 
-        private void CreateNewDetail(BinaryReader reader)
+        private void SpawnDetail(BinaryReader reader)
         {
             string model = reader.ReadString();
             var pos = reader.ReadVector3();
 
-            var obj = this.server.World.CreateDetail(model, pos);
+			var template = this.server.GetPrefab(model);
 
-			// TODO: Some better way... :P
-			obj.CreateBehaviour<DoorBehaviour>();
+			var instance = this.server.World.CreateDetail(template, pos);
         }
 
         private void SetPlayer(BinaryReader reader)

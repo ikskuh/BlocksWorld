@@ -36,7 +36,7 @@ namespace BlocksWorld
          * To Server Only 
          ****************************/
         SetPlayer,
-        CreateNewDetail,
+        SpawnDetail,
         TriggerInteraction,
     }
 }

@@ -241,6 +241,23 @@ namespace BlocksWorld
 		{
 			if (this.DetailRemoved != null)
 				this.DetailRemoved(this, new DetailEventArgs(obj));
+
+			// Destroy all child objects in the object tree as well
+			foreach (var child in GetChildren(obj))
+			{
+				this.RemoveDetail(child.ID);
+			}
+		}
+
+		private List<DetailObject> GetChildren(DetailObject obj)
+		{
+			List<DetailObject> children = new List<DetailObject>();
+			foreach (var detail in this.details)
+			{
+				if (detail.Parent == obj)
+					children.Add(detail);
+			}
+			return children;
 		}
 
 		/// <summary>
@@ -255,7 +272,7 @@ namespace BlocksWorld
 			return this.details.First(d => d.ID == id);
 		}
 
-		private bool HasDetail(int id)
+		public bool HasDetail(int id)
 		{
 			return this.details.Any(d => d.ID == id);
 		}

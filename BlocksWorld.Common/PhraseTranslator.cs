@@ -101,11 +101,11 @@ namespace BlocksWorld
 			});
         }
 
-        public void CreateNewDetail(string model, Vector3 pos)
+        public void SpawnDetail(string prefab, Vector3 pos)
         {
-            this.sender.Send(NetworkPhrase.CreateNewDetail, (s) =>
+            this.sender.Send(NetworkPhrase.SpawnDetail, (s) =>
             {
-                s.Write(model);
+                s.Write(prefab);
                 s.Write(pos);
             });
         }
