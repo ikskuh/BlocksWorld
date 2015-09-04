@@ -350,6 +350,11 @@ namespace BlocksWorld
 				var from = this.player.Eye;
 				foreach (var detail in this.world.Details)
 				{
+					// Ignore all details without interactions.
+					// How stupid was I when i forgot this?
+					if (detail.Interactions.Count == 0)
+						continue;
+
 					// Check for visibility with trace
 					var to = detail.WorldPosition;
 					var dir = (to - from).Normalized();
@@ -363,14 +368,23 @@ namespace BlocksWorld
 					if (dist > 3.5f) // TODO: Implement settings value
 						continue;
 
+					var center = this.player.Camera.WorldToScreen(detail.WorldPosition, this.Aspect);
+					if ((center.X < -0.6) || (center.X > 0.6))
+						continue;
+					/*
+					Maybe opt in this later, but it should decrease usability of doors.
+					if ((center.Y < -1.0) || (center.Y > 1.0))
+                        continue;
+					*/
+
 					this.visibleDetails.Add(detail);
+
 
 					if (this.selectedDetail != null)
 					{
-						var center = this.player.Camera.WorldToScreen(detail.WorldPosition, this.Aspect).Xy.Length;
 						var currentCenter = this.player.Camera.WorldToScreen(this.selectedDetail.WorldPosition, this.Aspect).Xy.Length;
 
-						if (currentCenter < center)
+						if (currentCenter < center.Xy.Length)
 							continue;
 					}
 					this.selectedDetail = detail;

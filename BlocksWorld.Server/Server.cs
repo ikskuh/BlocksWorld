@@ -32,7 +32,7 @@ namespace BlocksWorld
 			
 			GenerateWorld();
 
-			var instance = this.world.CreateDetail(template, new Vector3(2, 1, 2));
+			var instance = this.world.CreateDetail(template, new Vector3(10.5f, 0.51f, 2.5f));
 
 			this.server = new TcpListener(IPAddress.Any, 4523);
 			server.Start();
