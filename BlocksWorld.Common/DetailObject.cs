@@ -18,7 +18,7 @@ namespace BlocksWorld
 
 		private int lastBehaviourID = 0;
 		private Vector3 position;
-		private Vector3 rotation;
+		private Quaternion rotation = Quaternion.Identity;
 		private ObservableCollection<Interaction> interactions = new ObservableCollection<Interaction>();
 
 		private Dictionary<int, Behaviour> behaviours = new Dictionary<int, Behaviour>();
@@ -141,16 +141,16 @@ namespace BlocksWorld
 		public int ID { get; private set; }
 		public string Model { get; set; }
 
-		public Vector3 Rotation
+		public Quaternion Rotation
 		{
 			get
 			{
-				return rotation;
+				return this.rotation;
 			}
 
 			set
 			{
-				bool changed = (value - rotation).Length > 0.02f;
+				bool changed = (value - rotation).Length > 0.02;
 				rotation = value;
 				if (changed)
 					this.OnChanged();
@@ -187,15 +187,24 @@ namespace BlocksWorld
 			}
 		}
 
+		public Quaternion WorldRotation
+		{
+			get
+			{
+				if (this.parent != null)
+					return this.rotation * this.parent.rotation;
+				else
+					return this.rotation;
+			}
+		}
+
 		public Matrix4 LocalTransform
 		{
 			get
 			{
 				return 
-					Matrix4.CreateRotationX(this.Rotation.X) *
-					Matrix4.CreateRotationY(this.Rotation.Y) *
-					Matrix4.CreateRotationZ(this.Rotation.Z) *
-					Matrix4.CreateTranslation(this.Position);
+					Matrix4.CreateFromQuaternion(this.rotation) *
+					Matrix4.CreateTranslation(this.position);
 			}
 		}
 

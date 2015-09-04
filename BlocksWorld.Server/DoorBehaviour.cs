@@ -8,7 +8,8 @@ namespace BlocksWorld
 		private bool isOpen = false;
 		private Interaction interaction;
 		private Signal sigOpened;
-		private float? initialRotation = null;
+		private Quaternion? initialRotation = null;
+		private float fOpen = 0.0f;
 
 		public DoorBehaviour()
 		{
@@ -24,19 +25,15 @@ namespace BlocksWorld
 		private void DoorBehaviour_Updated(object sender, OpenTK.FrameEventArgs e)
 		{
 			float dt = (float)e.Time;
-			this.initialRotation = this.initialRotation ?? this.Detail.Rotation.Y;
+			this.initialRotation = this.initialRotation ?? this.Detail.Rotation;
 
-			float targetRotation = this.initialRotation.Value + (this.isOpen ? 0.5f * (float)Math.PI : 0.0f);
-			float currentRotation = this.Detail.Rotation.Y;
+			float targetRotation = (this.isOpen ? 1.0f : 0.0f);
 
-			float delta = targetRotation - currentRotation;
+			float delta = targetRotation - this.fOpen;
 
-			currentRotation += Math.Sign(delta) * Math.Min(Math.Abs(delta), dt);
-			
-			this.Detail.Rotation = new Vector3(
-				0,
-				currentRotation,
-				0);
+			this.fOpen += Math.Sign(delta) * Math.Min(Math.Abs(delta), dt);
+
+			this.Detail.Rotation = this.initialRotation.Value * Quaternion.FromAxisAngle(Vector3.UnitY, 0.7f * MathHelper.Pi * this.fOpen);
 		}
 
 		private void DoorBehaviour_Enabled(object sender, EventArgs e)

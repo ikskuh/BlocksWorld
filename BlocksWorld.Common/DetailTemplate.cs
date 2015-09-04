@@ -20,13 +20,16 @@ namespace BlocksWorld
 			return DetailHelper.ParseVector3(this.Position);
 		}
 
-		public Vector3 GetRotation()
+		public Quaternion GetRotation()
 		{
 			if (this.Rotation == null)
 				throw new InvalidOperationException("Template has no rotation");
 			var ang = DetailHelper.ParseVector3(this.Rotation);
 			ang *= MathHelper.DegreesToRadians(1);
-			return ang;
+			return 
+				Quaternion.FromAxisAngle(Vector3.UnitY, ang.Y);// *
+				// Quaternion.FromAxisAngle(Vector3.UnitY, ang.Y) *
+				// Quaternion.FromAxisAngle(Vector3.UnitY, ang.Y);
 		}
 
 		[XmlAttribute("id")]

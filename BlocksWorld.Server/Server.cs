@@ -70,10 +70,10 @@ namespace BlocksWorld
 			return;
 
 			var objA = this.world.CreateDetail("table_a", new Vector3(8.0f, 1.3f, 4.0f));
-			objA.Rotation = new Vector3(0, (float)(0.32f * Math.PI), 0);
+			objA.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, (float)(0.32f * Math.PI));
 
 			var objB = this.world.CreateDetail("table_b", new Vector3(10.0f, 1.3f, 4.0f));
-			objB.Rotation = new Vector3(0, (float)(0.1f * Math.PI), 0);
+			objA.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, (float)(0.1f * Math.PI));
 
 			var behavA = objA.CreateBehaviour<FlipOverBehaviour>();
 			var behavA1 = objA.CreateBehaviour<ButtonBehaviour>();

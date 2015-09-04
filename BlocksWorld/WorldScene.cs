@@ -210,7 +210,7 @@ namespace BlocksWorld
 
 			string model = reader.ReadString();
 			var pos = reader.ReadVector3();
-			var rot = reader.ReadVector3();
+			var rot = reader.ReadQuaternion();
 
 			Shape shape = null;
 			bool hasShape = reader.ReadBoolean();
@@ -244,7 +244,7 @@ namespace BlocksWorld
 		{
 			int id = reader.ReadInt32();
 			var pos = reader.ReadVector3();
-			var rot = reader.ReadVector3();
+			var rot = reader.ReadQuaternion();
 
 			DetailObject obj = this.world.GetDetail(id);
 			if (obj == null)
