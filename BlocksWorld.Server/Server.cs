@@ -19,12 +19,56 @@ namespace BlocksWorld
 		private TcpListener server;
 		private HashSet<Player> clients = new HashSet<Player>();
 		private World world;
+		private bool running = true;
 		private volatile int clientIdCounter = 0;
 
 		static void Main(string[] args)
 		{
 			var pgm = new Server();
+
+			var console = new Thread(pgm.ServerConsole);
+			console.IsBackground = true;
+			console.Start();
+
 			pgm.Run();
+		}
+
+		void ServerConsole()
+		{
+			var stringMatch = new Regex(@"\""(?<text>.*?)\""|(?<text>\w+)", RegexOptions.Compiled);
+			var commands = new Dictionary<string, Action<string[]>>()
+			{
+				["shutdown"] = this.Shutdown,
+				["quit"] = this.Shutdown,
+				["save"] = this.Save,
+			};
+			while(true)
+			{
+				string line = Console.ReadLine();
+				var matches = stringMatch.Matches(line);
+				var command = matches.Cast<Match>().Take(1).Select(x => x.Groups["text"].Value).First().ToLower();
+				var args = matches.Cast<Match>().Skip(1).Select(x => x.Groups["text"].Value).ToArray();
+				if(commands.ContainsKey(command))
+				{
+					commands[command](args);
+				}
+				else
+				{
+					Console.WriteLine("Command ´{0}´ not found.", command);
+				}
+			}
+		}
+
+		private void Save(string[] obj)
+		{
+			Console.WriteLine("Saving world...");
+			this.world.Save("world.dat");
+			Console.WriteLine("World saved.");
+		}
+
+		void Shutdown(string[] args)
+		{
+			this.running = false;
 		}
 
 		void Run()
@@ -36,7 +80,7 @@ namespace BlocksWorld
 			BeginAccept();
 
 			Stopwatch timer = new Stopwatch();
-			while (true)
+			while (this.running)
 			{
 				double deltaTime = timer.Elapsed.TotalSeconds;
 				timer.Restart();
@@ -54,8 +98,23 @@ namespace BlocksWorld
 					}
 					this.clients.RemoveWhere(c => (c.IsAlive == false));
 				}
+
 				Thread.Sleep((int)Math.Max(0, 30 - deltaTime)); // About 30 FPS
 			}
+
+			server.Stop();
+			Thread.Sleep(50);
+
+			Console.WriteLine("Disconnecting clients...");
+			lock(this.clients)
+			{
+				foreach(var client in this.clients)
+				{
+					client.Dispose();
+				}
+				this.clients.Clear();
+			}
+			Console.WriteLine("done.");
 		}
 
 		private void GenerateWorld()
@@ -127,15 +186,19 @@ namespace BlocksWorld
 
 		private void EndAccept(IAsyncResult ar)
 		{
-			var tcp = this.server.EndAcceptTcpClient(ar);
-			var client = new Player(this, tcp, ++clientIdCounter);
-
-			lock (this.clients)
+			try
 			{
-				this.clients.Add(client);
-			}
+				var tcp = this.server.EndAcceptTcpClient(ar);
+				var client = new Player(this, tcp, ++clientIdCounter);
 
-			this.BeginAccept();
+				lock (this.clients)
+				{
+					this.clients.Add(client);
+				}
+
+				this.BeginAccept();
+			}
+			catch(ObjectDisposedException){ }
 		}
 
 		void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)

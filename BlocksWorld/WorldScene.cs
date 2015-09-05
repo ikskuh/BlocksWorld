@@ -544,6 +544,7 @@ namespace BlocksWorld
 
 		protected override void Dispose(bool disposing)
 		{
+			this.largeFont?.Dispose();
 			this.objectShader?.Dispose();
 			this.network?.Dispose();
 			this.playerModel?.Dispose();

@@ -34,7 +34,7 @@ The Play Mode provides the actual game mechanics and allows players to play a Sc
  - Detail Objects
   - Have Behaviours
   - Have Interactions
-  - Have a single model
+  - Can have childrens
   - Can be defined via XML file
 - Multiplayer
  - Synchronized Players
@@ -75,6 +75,10 @@ This list contains items that will be short term as well as long term plans
 - game modes
  - editor mode
  - player mode
+- saving of
+ - details
+ - behaviours
+ - signal-slot-connections
 - game features
  - quest system
  - inventory

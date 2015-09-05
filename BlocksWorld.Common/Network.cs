@@ -84,8 +84,8 @@ namespace BlocksWorld
 
         public void Dispose()
         {
-            this.reader.Dispose();
-            this.writer.Dispose();
+            this.reader?.Dispose();
+            this.writer?.Dispose();
             ((IDisposable)this.client).Dispose();
         }
 

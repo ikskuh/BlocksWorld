@@ -155,6 +155,7 @@ namespace BlocksWorld
             GL.DeleteTexture(this.texture);
 
             this.shader?.Dispose();
+			this.backbuffer?.Dispose();
 
             this.vao = 0;
             this.vertexBuffer = 0;

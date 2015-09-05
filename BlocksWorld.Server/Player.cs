@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BlocksWorld
 {
-    internal partial class Player : IPhraseSender, IActor
+    internal partial class Player : IPhraseSender, IActor, IDisposable
     {
         private readonly int id;
         private Server server;
@@ -137,12 +137,13 @@ namespace BlocksWorld
             this.Network.Dispatch();
         }
 
-        private void Kill()
+        public void Dispose()
         {
             this.others.DestroyProxy(this.id);
 
             this.IsAlive = false;
-            this.Network.Disconnect();
+			this.Network.Disconnect();
+            this.Network.Dispatch();
         }
 
         void IPhraseSender.Send(NetworkPhrase phrase, PhraseSender sender)
