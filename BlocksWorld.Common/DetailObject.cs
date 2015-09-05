@@ -88,8 +88,13 @@ namespace BlocksWorld
 
 		private Behaviour CreateBehaviour(Behaviour behaviour, bool enabled)
 		{
+			return this.CreateBehaviour(behaviour, this.lastBehaviourID++, enabled);
+		}
+
+		internal Behaviour CreateBehaviour(Behaviour behaviour, int id, bool enabled)
+		{
 			behaviour.detail = this;
-			behaviour.ID = this.lastBehaviourID++;
+			behaviour.ID = id;
 			this.behaviours.Add(behaviour.ID, behaviour);
 			behaviour.IsEnabled = enabled;
 			this.OnBehaviourCreated(behaviour);
@@ -243,6 +248,8 @@ namespace BlocksWorld
 				return this.interactions;
 			}
 		}
+
+		public IReadOnlyDictionary<int, Behaviour> Behaviours { get { return this.behaviours; } }
 
 		public DetailObject Parent { get { return this.parent; } }
 

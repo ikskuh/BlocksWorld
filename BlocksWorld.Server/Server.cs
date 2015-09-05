@@ -62,7 +62,7 @@ namespace BlocksWorld
 		private void Save(string[] obj)
 		{
 			Console.WriteLine("Saving world...");
-			this.world.Save("world.dat");
+			this.world.Save("world.dat", WorldSaveMode.Default);
 			Console.WriteLine("World saved.");
 		}
 

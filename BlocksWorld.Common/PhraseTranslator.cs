@@ -22,7 +22,8 @@ namespace BlocksWorld
         {
             this.sender.Send(NetworkPhrase.LoadWorld, (w) =>
             {
-                world.Save(w.BaseStream, true);
+				// Only send blocks here because signals and details are transferred otherwise
+                world.Save(w.BaseStream, WorldSaveMode.Blocks, true);
             });
         }
 

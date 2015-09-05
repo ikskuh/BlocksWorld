@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BlocksWorld
 {
@@ -6,6 +7,7 @@ namespace BlocksWorld
 	{
 		private readonly Behaviour behaviour;
 		private readonly string name;
+		internal readonly HashSet<Signal> signals = new HashSet<Signal>();
 
 		public event EventHandler SignalRecevied;
 
@@ -32,5 +34,21 @@ namespace BlocksWorld
 		}
 
 		public string Name { get { return this.name; } }
+
+		public Behaviour Behaviour
+		{
+			get
+			{
+				return behaviour;
+			}
+		}
+
+		public IEnumerable<Signal> Signals
+		{
+			get
+			{
+				return signals;
+			}
+		}
 	}
 }

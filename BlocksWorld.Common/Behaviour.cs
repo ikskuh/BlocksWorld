@@ -74,8 +74,6 @@ namespace BlocksWorld
 
 		public DetailObject Detail { get { return this.detail; } }
 
-		public bool IsAttached { get { return this.detail != null; } }
-
 		public IReadOnlyDictionary<string, Signal> Signals { get { return this.signals; } }
 
 		public IReadOnlyDictionary<string, Slot> Slots { get { return this.slots; } }
